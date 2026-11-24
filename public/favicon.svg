@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-labelledby="t"><title id="t">MONSUN</title><defs><pattern id="quilt-mark" width="8.16" height="8.16" patternUnits="userSpaceOnUse" patternTransform="rotate(45 50.00 50.00)">
+<rect width="8.16" height="8.16" fill="#1F5562"/><path d="M0 0H8.16M0 0V8.16" stroke="#E7EDEB" stroke-opacity=".38" stroke-width="0.86"/></pattern></defs>
+<circle cx="50.00" cy="50.00" r="48.00" fill="#F2A124"/>
+<path d="M50.00 2.00A48.00 48.00 0 0 1 50.00 98.00Z" fill="url(#quilt-mark)"/>
+<path d="M50.00 2.00V98.00" stroke="#E7EDEB" stroke-width="2.30" stroke-dasharray="4.32 3.36"/></svg>

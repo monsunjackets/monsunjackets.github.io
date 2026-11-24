@@ -1,0 +1,51 @@
+/* Design tokens, ported from docs/design/prototype/monsun-prototyp.html (ADR 0001 §4).
+   Light theme = the shell alone, dark theme = the liner zipped in. Components use these tokens only. */
+/* Layout: the site is a jacket. Light theme = shell only (spring), dark theme = liner zipped in (winter, quilted).
+   Left-aligned, asymmetric 7/5 hero; one bold moment (temperature switch + liner pane), everything else quiet. */
+:root {
+  /* palette: light = "bez podpinki" */
+  --canvas: #E7EDEB;        /* mist: monsoon sky, not cream */
+  --raised: #F3F6F5;
+  --sunk: #D9E2DF;
+  --ink: #0F2C35;           /* petrol night */
+  --ink-soft: #4A626B;
+  --line: rgba(15, 44, 53, .16);
+  --petrol: #1F5562;        /* the liner's colour, links */
+  --saffron: #F2A124;       /* the sun in the logo, one warm accent */
+  --on-saffron: #0F2C35;
+  --cognac: #8B5A36;        /* leather notes */
+  --focus: #0F2C35;         /* focus ring; saffron on mist is only 1.8:1 */
+  --stitch: rgba(15, 44, 53, 0);
+  --pane: rgba(31, 85, 98, .55);
+  --shadow-color: 196 45% 12%;
+  --header-bg: rgba(231, 237, 236, .94);
+
+  /* type: one variable family from Ek Type (Mumbai); the width axis carries the weather */
+  --font: "Anek Latin", "Segoe UI", system-ui, sans-serif;
+  --step--1: .8125rem;  --step-0: 1.0625rem;  --step-1: 1.3125rem;
+  --step-2: 1.65rem;    --step-3: 2.0625rem;  --step-4: 2.6rem;
+  --display: clamp(2.9rem, 6.6vw, 6.25rem);
+
+  /* radii by role: tag/input 3px, media 14px, controls pill */
+  --r-tag: 3px; --r-media: 14px; --r-pill: 999px;
+  --ease: cubic-bezier(.2, 0, 0, 1);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas: #0D262E; --raised: #12323B; --sunk: #0A1F26;
+    --ink: #E7EDEB; --ink-soft: #A6BABD; --line: rgba(231, 237, 236, .14);
+    --petrol: #86C1CB; --saffron: #F2A124; --on-saffron: #0F2C35; --cognac: #CF9C6E; --focus: #F2A124;
+    --stitch: rgba(134, 193, 203, .075); --pane: rgba(18, 50, 59, .5);
+    --shadow-color: 196 60% 3%; --header-bg: rgba(13, 38, 46, .94);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --canvas: #0D262E; --raised: #12323B; --sunk: #0A1F26;
+  --ink: #E7EDEB; --ink-soft: #A6BABD; --line: rgba(231, 237, 236, .14);
+  --petrol: #86C1CB; --saffron: #F2A124; --on-saffron: #0F2C35; --cognac: #CF9C6E; --focus: #F2A124;
+  --stitch: rgba(134, 193, 203, .075); --pane: rgba(18, 50, 59, .5);
+  --shadow-color: 196 60% 3%; --header-bg: rgba(13, 38, 46, .94);
+  color-scheme: dark;
+}
