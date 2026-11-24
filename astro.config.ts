@@ -11,16 +11,17 @@ export default defineConfig({
   security: {
     csp: {
       algorithm: 'SHA-256',
+      // Google origins for GA4 are added by the consent chunk (B2), the code that needs them.
       directives: [
         "default-src 'self'",
-        "img-src 'self' https://*.google-analytics.com https://*.googletagmanager.com",
-        "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
+        "img-src 'self'",
+        "connect-src 'self'",
         "font-src 'self'",
         "form-action 'self' https://docs.google.com",
         "base-uri 'none'",
         "object-src 'none'",
       ],
-      scriptDirective: { resources: ["'self'", 'https://*.googletagmanager.com'] },
+      scriptDirective: { resources: ["'self'"] },
       styleDirective: { resources: ["'self'"] },
     },
   },
