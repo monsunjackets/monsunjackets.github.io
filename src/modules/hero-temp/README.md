@@ -1,7 +1,7 @@
 # Module `hero-temp`: the liner zipping in
 
 Date: 2026-11-24
-Status: proposed
+Status: accepted (gate H, 24 Nov 2026)
 Author: Miłosz Lewandowski + Claude
 Related to: `BRIEF.md` (this folder); ADR 0001 §4 (module contract)
 
@@ -53,7 +53,7 @@ All optional. Defaults are the Polish copy from the prototype.
 | `coldLabel`, `warmLabel` | `string` | „−10°C”, „+15°C” | Radio labels and the readout |
 | `captionCold`, `captionWarm` | `string` | „Styczeń. Podpinka wpięta.”, „Kwiecień. Ta sama kurtka, podpinka wypięta.” | Caption under the drawing; also the announced text |
 | `altCold`, `altWarm` | `string` | see `index.astro` | Text alternative of the drawing in each state |
-| `aiLabel` | `string` | „Wizualizacja AI” | Disclosure next to the caption |
+| `aiLabel` | `string` | „Ilustracja przygotowana z AI” | Disclosure next to the caption |
 | `class` | `string` | none | Extra class on the root `<figure>` |
 
 ## Behaviour without JS
@@ -135,7 +135,8 @@ In headless Chromium (Playwright's build 1243), through the DevTools protocol an
 - a click on the pull toggles the state, a drag to 60% scrubs the liner and settles on −10°C, and the live region
   receives the caption each time.
 
-Not checked: Firefox and Safari, a real touch screen, a screen reader, and the Astro build itself. The component
+Not checked: Firefox and Safari, a real touch screen and a screen reader. Since the port into `site/` (24 Nov) the
+component compiles with `astro check`/`tsc` and builds; the original note follows. The component
 was written against Astro conventions but never compiled, because `npm` must not run on this machine. The lead
 session should run `astro check` and a build in the container.
 
@@ -152,7 +153,7 @@ exact registration, and the same CSS drives them (liner image in `.ht-liner`, sh
   the framing, the light and the background exactly as they are. Add a quilted petrol-blue (#1F5562) zip-in liner
   with a diamond pattern and a ribbed collar, covering the whole inside of the jacket and attached by the zip along
   both front edges. Change nothing else."
-- Both would need the „Wizualizacja AI” caption and a row in the AI-use log.
+- Both would need the „Ilustracja przygotowana z AI” caption and a row in the AI-use log.
 
 ## Known limits
 
@@ -162,9 +163,8 @@ exact registration, and the same CSS drives them (liner image in `.ht-liner`, sh
 - **Page gutter.** The readout hangs `1rem` to the left of the stage, as in the prototype, so the host container
   needs at least a `1rem` side gutter or phones will scroll sideways. The module also caps itself at 420 px below
   860 px, copying the prototype's hero breakpoint; if the page's grid changes, move that cap to the page.
-- **Focus ring contrast.** The ring uses the site-wide saffron outline, which is 1.8:1 on the light canvas (7.4:1 in
-  the dark theme); 3:1 is the usual target. This belongs in the tokens (for example a `--focus` alias: ink in light,
-  saffron in dark), not in one module.
+- **Focus ring contrast.** Fixed after review G2: the ring uses the `--focus` token (ink in the light theme, 12.4:1;
+  saffron in the dark theme, 7.4:1). The saffron ring was 1.8:1 on the light canvas.
 
 - **Jacket colour.** The default drawing is cognac, while the AI photos elsewhere show a black jacket. Cognac was
   chosen because it stays a leather colour in both themes; `tone="ink"` gives a dark jacket in the light theme but a
@@ -172,7 +172,7 @@ exact registration, and the same CSS drives them (liner image in `.ht-liner`, sh
   contract forbids new colours.
 - **The drawing is a schematic.** One pull, a straight zip, a symmetrical jacket. It shows the mechanism, not a
   specific model.
-- **„Wizualizacja AI”.** The drawing was made with Claude, so the caption stays and the module needs a row in the
+- **„Ilustracja przygotowana z AI”.** The drawing was made with Claude, so the caption stays and the module needs a row in the
   AI-use log (report section 8).
 - **Saffron.** The pull is the second saffron element on the screen next to the sign-up button, against the
   prototype's "saffron once per screen" principle. It matches the theme zip, whose pull is also saffron when the

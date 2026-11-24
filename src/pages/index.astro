@@ -7,21 +7,21 @@ const products = [
   { name: 'Ramoneska skórzana z podpinką', price: '1 099 zł', priceNote: 'z podpinką zimową',
     text: 'Czarna ramoneska na co dzień i na uczelnię. Bez podpinki: 899 zł.', liner: 'Podpinka w zestawie' },
   { name: 'Kurtka skórzana, gotowa na podpinkę', price: '899 zł', priceNote: 'bez podpinki',
-    text: 'Prosty krój z koniakowej skóry, do pracy i na weekend. Podpinkę dokupisz, kiedy przyjdzie zima.',
-    liner: 'Pasuje każda podpinka MONSUN w tym samym rozmiarze' },
+    text: 'Prosty krój z koniakowej skóry, do pracy i na weekend. Podpinkę będzie można dokupić, kiedy przyjdzie zima.',
+    liner: 'Będzie pasować każda podpinka MONSUN w tym samym rozmiarze' },
   { name: 'Płaszcz skórzany z podpinką', price: '1 399 zł', priceNote: 'z podpinką zimową',
     text: 'Dłuższy krój za biodro, na mroźne poranki.', liner: 'Podpinka w zestawie' },
   { name: 'Kurtka jeansowa z zamkiem na podpinkę', price: '449 zł', priceNote: 'bez podpinki',
     text: 'Dla osób, które nie noszą skóry. Ten sam system podpinek.',
-    liner: 'Pasuje każda podpinka MONSUN w tym samym rozmiarze' },
+    liner: 'Będzie pasować każda podpinka MONSUN w tym samym rozmiarze' },
   { name: 'Podpinka pikowana', price: 'od 199 zł', priceNote: 'lekka 199 zł, zimowa 249 zł',
-    text: 'Nosisz ją w kurtce albo osobno, jako kamizelkę.', liner: 'Do wszystkich kurtek MONSUN' },
+    text: 'Będzie można nosić ją w kurtce albo osobno, jako kamizelkę.', liner: 'Do wszystkich kurtek MONSUN' },
 ];
 
 const posts = [
-  { title: 'Kurtka skórzana na zimę: jak nosić ją od listopada do kwietnia', author: 'Miłosz' },
-  { title: 'Jak dobrać rozmiar kurtki skórzanej, gdy kupujesz online', author: 'Filip' },
-  { title: 'Jak dbać o kurtkę skórzaną, gdy pada deszcz', author: 'Nishanth' },
+  'Kurtka skórzana na zimę: jak nosić ją od listopada do kwietnia',
+  'Jak dobrać rozmiar kurtki skórzanej, gdy kupujesz online',
+  'Jak dbać o kurtkę skórzaną, gdy pada deszcz',
 ];
 ---
 <Base
@@ -34,7 +34,8 @@ const posts = [
         <h1>Odzież na lata, nie na sezony.</h1>
         <p class="lede">Skórzana kurtka z podpinką na zamek. Zimą podpinka jest w środku, wiosną zostaje w szafie, a kurtka ta sama.</p>
         <div class="hero-actions">
-          <a class="btn" href="#lista">Zapisz się na listę startową</a>
+          <!-- Switch the button back to the launch list when the form ships (B3). -->
+          <a class="btn" href="#sposoby">Zobacz, jak działa podpinka</a>
           <a class="quiet" href="#kolekcja">Zobacz kolekcję</a>
         </div>
       </div>
@@ -46,18 +47,18 @@ const posts = [
     <div class="wrap">
       <div class="section-head">
         <h2>Jedna kurtka, trzy sposoby noszenia</h2>
-        <p class="lede">Podpinka wpina się na zamek wzdłuż poły, od środka. Ten sam zamek mają wszystkie nasze kurtki, więc każda podpinka pasuje do każdej kurtki w tym samym rozmiarze.</p>
+        <p class="lede">Podpinka będzie się wpinać na zamek wzdłuż poły, od środka. Wszystkie nasze kurtki mają mieć ten sam zamek, więc każda podpinka będzie pasować do każdej kurtki w tym samym rozmiarze.</p>
       </div>
-      <div class="scale" role="img" aria-label="Zakresy temperatur: kurtka z podpinką od minus 10 do plus 5 stopni, sama kurtka od plus 4 do plus 18, sama podpinka od plus 7 do plus 16.">
+      <div class="scale">
         <span class="way-name">Kurtka z podpinką</span>
-        <div class="way-bar"><i class="both">grudzień–luty</i></div>
+        <div class="way-bar"><i class="both">grudzień–luty<span class="visually-hidden">, orientacyjnie od −10 do +5°C</span></i></div>
         <span class="way-name">Sama kurtka</span>
-        <div class="way-bar"><i class="shell">marzec–maj, wrzesień–listopad</i></div>
+        <div class="way-bar"><i class="shell">marzec–maj, wrzesień–listopad<span class="visually-hidden">, orientacyjnie od +4 do +18°C</span></i></div>
         <span class="way-name">Sama podpinka</span>
-        <div class="way-bar"><i class="liner">pod płaszcz, w chłodnym biurze</i></div>
+        <div class="way-bar"><i class="liner">pod płaszcz, w chłodnym biurze<span class="visually-hidden">, orientacyjnie od +7 do +16°C</span></i></div>
         <div class="scale-axis" aria-hidden="true"><span>−10°C</span><span>−5°C</span><span>0°C</span><span>+5°C</span><span>+10°C</span><span>+15°C</span></div>
-        <p class="note way-note">Zakresy orientacyjne. Sprawdzimy je na prototypie i opiszemy wynik na blogu.</p>
       </div>
+      <p class="note way-note">Zakresy orientacyjne. Sprawdzimy je na prototypie i opiszemy wynik na blogu.</p>
     </div>
   </section>
 
@@ -90,8 +91,8 @@ const posts = [
       <dl class="facts">
         <div><dt>Skóra</dt><dd>Owcza i bydlęca, z garbarni z certyfikatem Leather Working Group. To nasz wymóg dla dostawcy, nie gotowy fakt.</dd></div>
         <div><dt>Szycie</dt><dd>Indie, zakład, który pokażemy z nazwy, gdy go wybierzemy.</dd></div>
-        <div><dt>Zamki</dt><dd>Metalowe, wymienne, ten sam system we wszystkich modelach.</dd></div>
-        <div><dt>Gwarancja</dt><dd>Planujemy 3 lata na szwy i zamki. Ustawowa rękojmia to 2 lata.</dd></div>
+        <div><dt>Zamki</dt><dd>Planujemy metalowe i wymienne, jeden system we wszystkich modelach.</dd></div>
+        <div><dt>Gwarancja</dt><dd>Planujemy 3 lata na szwy i zamki. Ustawowo sprzedawca odpowiada za niezgodność towaru z umową przez 2 lata.</dd></div>
       </dl>
     </div>
   </section>
@@ -100,10 +101,9 @@ const posts = [
     <div class="wrap">
       <div class="section-head"><h2>Wkrótce na blogu</h2></div>
       <div class="posts">
-        {posts.map((post) => (
+        {posts.map((title) => (
           <article class="post-teaser">
-            <h3>{post.title}</h3>
-            <p class="note">Pisze: {post.author}</p>
+            <h3>{title}</h3>
           </article>
         ))}
       </div>
@@ -139,7 +139,7 @@ const posts = [
   .way-bar .liner { grid-column: 18 / 27; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--petrol); }
   .scale-axis { grid-column: 2; display: grid; grid-template-columns: repeat(30, 1fr); font-size: var(--step--1); color: var(--ink-soft); font-variant-numeric: tabular-nums; border-top: 1px solid var(--line); padding-top: .3rem; }
   .scale-axis span { grid-column: span 5; }
-  .way-note { grid-column: 2; }
+  .way-note { margin-top: .5rem; margin-left: calc(11rem + 1rem); }
 
   .products { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); max-width: 900px; }
   .products li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .25rem 1.5rem; padding: 1.1rem .5rem; border-bottom: 1px solid var(--line); }
@@ -167,10 +167,12 @@ const posts = [
   @media (max-width: 860px) {
     .hero-grid, .provenance, .posts { grid-template-columns: minmax(0, 1fr); }
     .scale { grid-template-columns: minmax(0, 1fr); }
-    .scale-axis, .way-note { grid-column: 1; }
+    .scale-axis { grid-column: 1; }
+    .way-note { margin-left: 0; }
   }
   @media (max-width: 480px) {
     .facts div { grid-template-columns: minmax(0, 1fr); gap: .2rem; }
-    .way-bar i { padding-inline: .4rem; }
+    .way-bar { height: auto; }
+    .way-bar i { padding: .4rem; white-space: normal; min-height: 2.4rem; }
   }
 </style>

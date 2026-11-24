@@ -106,7 +106,7 @@
   line-height: 1.2;
 }
 .ht-radio:checked + label { background: var(--ink); color: var(--canvas); box-shadow: none; }
-.ht-radio:focus-visible + label { outline: 2px solid var(--saffron); outline-offset: 3px; }
+.ht-radio:focus-visible + label { outline: 2px solid var(--focus); outline-offset: 3px; }
 
 /* ---------- caption and state texts ---------- */
 .ht-caption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem 1rem; font-size: var(--step--1); color: var(--ink-soft); }
