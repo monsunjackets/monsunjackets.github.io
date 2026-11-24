@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Runs npm, npx, node or astro in a throwaway Node container. This host also holds unrelated work
-# credentials, so code from npm packages never runs on it (ADR 0001 §1, amended after reviews G1 and G1b).
+# credentials, so code from npm packages never runs on it (ADR 0001 §1, amended after reviews G1–G1c).
 #
-# Dev, build, test and check see the checkout read-only; only the output folders (node_modules, dist,
-# .astro, .npm-cache) are writable, so package code cannot change anything the host later runs or reads
-# as configuration (git repos and hooks, scripts/, Claude or editor settings). npm ci/install get a
-# writable checkout because they run npm's own code only: .npmrc has ignore-scripts=true. DOCK_RW=1
-# forces a writable checkout for our own scripts that edit sources (images:strip).
+# The checkout is always mounted read-only. Writable mounts:
+#   - every command: node_modules, dist and .astro (build output), with a throwaway npm cache;
+#   - npm commands that change dependencies: also package.json, package-lock.json and the npm cache.
+# Writable folders must be plain directories (a symlink there would make Docker mount its target).
+# After each run the output folders are scanned for git repos, Claude or editor config and symlinks.
 #
 # Usage: scripts/dock npm ci | PORT=4321 scripts/dock npm run dev | scripts/dock npm run build
 set -euo pipefail
@@ -15,37 +15,54 @@ IMAGE="node:24-bookworm-slim@sha256:873f586f3794f52281bd039bf02c048a0be08fde6193
 tty=(); if [ -t 0 ] && [ -t 1 ]; then tty=(-t); fi
 ports=(); if [ -n "${PORT:-}" ]; then ports=(-p "127.0.0.1:${PORT}:${PORT}"); fi
 
-writable=0
-if [ "${DOCK_RW:-}" = 1 ]; then writable=1; fi
-if [ "${1:-}" = npm ] && [[ " ci install i uninstall update " == *" ${2:-} "* ]]; then writable=1; fi
-
-mounts=()
-if [ "$writable" = 1 ]; then
-  mounts+=(--mount "type=bind,src=${ROOT},dst=/work")
-else
-  mounts+=(--mount "type=bind,src=${ROOT},dst=/work,readonly")
-  for dir in node_modules dist .astro .npm-cache; do
-    mkdir -p "${ROOT}/${dir}"
-    mounts+=(--mount "type=bind,src=${ROOT}/${dir},dst=/work/${dir}")
-  done
+dirs=(node_modules dist .astro); files=(); cache=/tmp/.npm
+if [ "${1:-}" = npm ]; then
+  case "${2:-}" in
+    ci|clean-install) dirs+=(.npm-cache); cache=/work/.npm-cache ;;
+    install|i|add|uninstall|un|rm|remove|update|up|upgrade)
+      dirs+=(.npm-cache); cache=/work/.npm-cache; files=(package.json package-lock.json) ;;
+  esac
 fi
-mkdir -p "${ROOT}/.claude"
-mounts+=(--mount "type=bind,src=${ROOT}/scripts,dst=/work/scripts,readonly"
-         --mount "type=bind,src=${ROOT}/.claude,dst=/work/.claude,readonly")
-if [ -e "${ROOT}/.git" ]; then mounts+=(--mount "type=bind,src=${ROOT}/.git,dst=/work/.git,readonly"); fi
 
-status=0
+refuse() { printf 'scripts/dock: %s\n' "$1" >&2; exit 98; }
+mounts=(--mount "type=bind,src=${ROOT},dst=/work,readonly")
+for dir in "${dirs[@]}"; do
+  path="${ROOT}/${dir}"
+  if [ -L "$path" ] || { [ -e "$path" ] && [ ! -d "$path" ]; }; then refuse "${dir} is not a plain directory; refusing to mount it"; fi
+  mkdir -p "$path"
+  mounts+=(--mount "type=bind,src=${path},dst=/work/${dir}")
+done
+for file in "${files[@]}"; do
+  path="${ROOT}/${file}"
+  if [ -L "$path" ] || [ ! -f "$path" ]; then refuse "${file} is not a plain file; refusing to mount it"; fi
+  mounts+=(--mount "type=bind,src=${path},dst=/work/${file}")
+done
+
+# Run in the background and forward signals, so killing this script also stops the container.
 docker run --rm -i "${tty[@]}" --init \
   --user "$(id -u):$(id -g)" --cap-drop=ALL --security-opt=no-new-privileges \
   "${mounts[@]}" -w /work \
-  -e HOME=/tmp -e npm_config_cache=/work/.npm-cache -e ASTRO_TELEMETRY_DISABLED=1 \
+  -e HOME=/tmp -e npm_config_cache="${cache}" -e npm_config_ignore_scripts=true -e ASTRO_TELEMETRY_DISABLED=1 \
   -e PORT="${PORT:-}" -e MONSUN_LAB="${MONSUN_LAB:-}" \
-  "${ports[@]}" "$IMAGE" "$@" || status=$?
+  "${ports[@]}" "$IMAGE" "$@" <&0 &
+pid=$!
+trap 'kill -TERM "$pid" 2>/dev/null' TERM HUP
+trap 'kill -INT "$pid" 2>/dev/null' INT
+status=0
+while :; do
+  if wait "$pid"; then status=0; else status=$?; fi
+  kill -0 "$pid" 2>/dev/null || break
+done
+trap - TERM HUP INT
 
-# The output folders stay writable, so they must never hold files that git, an editor or a Claude
-# session would act on when someone reads or opens them.
-planted="$(find "${ROOT}/dist" "${ROOT}/.astro" \( -name .git -o -name .claude -o -name CLAUDE.md \
-  -o -name CLAUDE.local.md -o -name AGENTS.md -o -name .mcp.json -o -name .vscode \) -print 2>/dev/null || true)"
+# Detection, not containment: the output folders stay writable, so they must never hold anything that
+# git, an editor or a Claude session would act on when someone opens or reads them.
+scan() {
+  find "${ROOT}/node_modules" "${ROOT}/dist" "${ROOT}/.astro" -name .git -print || return 1
+  find "${ROOT}/dist" "${ROOT}/.astro" \( -type l -o -name .claude -o -name CLAUDE.md -o -name CLAUDE.local.md \
+    -o -name AGENTS.md -o -name .mcp.json -o -name .vscode \) -print || return 1
+}
+if ! planted="$(scan)"; then printf 'scripts/dock: could not scan the output folders\n' >&2; exit 97; fi
 if [ -n "$planted" ]; then
   printf 'scripts/dock: unexpected files in build output; delete them and find out what wrote them:\n%s\n' "$planted" >&2
   exit 97
