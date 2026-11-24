@@ -21,8 +21,14 @@ scripts/dock npm run build          # static build into dist/
 scripts/dock npm run verify         # checks on dist/ (CSP meta and more)
 ```
 
-With Docker Desktop the published port is reachable from the Windows browser. The container cannot
-write to `.git/`, `scripts/` or `.claude/`, which the host runs later.
+With Docker Desktop the published port is reachable from the Windows browser.
+
+Dev, build, test and check see the checkout read-only and can write only `node_modules/`, `dist/`,
+`.astro/` and `.npm-cache/`. `npm ci` and `npm install` get a writable checkout, because with
+`ignore-scripts` they run npm's own code only; `.git/`, `scripts/` and `.claude/` stay read-only even then.
+Our own scripts that edit sources need `DOCK_RW=1`, e.g. `DOCK_RW=1 scripts/dock npm run images:strip`.
+After each run the wrapper fails (exit 97) if `dist/` or `.astro/` contains a `.git`, `.claude`, `.vscode`,
+`.mcp.json`, `CLAUDE.md` or `AGENTS.md`.
 
 ## Publishing
 
