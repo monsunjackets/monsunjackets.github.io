@@ -1,36 +1,176 @@
 ---
-// Placeholder page, ported 1:1 from the old index.html so that switching Pages to Actions changes nothing visible.
-import { Image } from 'astro:assets';
-import logo from '../assets/logo.png';
----
-<!doctype html>
-<html lang="pl">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MONSUN · Odzież na lata, nie na sezony</title>
-  <meta name="description" content="MONSUN: skórzane kurtki z podpinką na zamek, jedna kurtka na cały rok. Projekt studencki PWr. Strona w budowie.">
-  <link rel="canonical" href="https://monsunjackets.github.io/">
-</head>
-<body>
-  <Image src={logo} alt="MONSUN" widths={[420, 840]} sizes="min(420px, 85vw)" loading="eager" />
-  <h1>Odzież na lata, nie na sezony.</h1>
-  <p>Skórzane kurtki z podpinką na zamek: jedna kurtka na cały rok. Strona w budowie.</p>
-  <footer>Projekt studencki PWr · Digital Marketing and Social Media 2026/27</footer>
-</body>
-</html>
+// Home page in five blocks (Lab 7, slide 3): logo and menu, core message with one button, product, blog, footer.
+import Base from '../layouts/Base.astro';
+import HeroTemp from '../modules/hero-temp/index.astro';
 
-<style is:global>
-    :root { --petrol: #1F4E5A; --cream: #FFF8EC; --orange: #E85214; }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; min-height: 100vh; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 1.5rem; padding: 2rem 1rem;
-      background: var(--cream); color: var(--petrol);
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; text-align: center;
-    }
-    img { width: min(420px, 85vw); height: auto; }
-    h1 { margin: 0; font-size: clamp(1.4rem, 4vw, 2rem); }
-    p { margin: 0; max-width: 32rem; line-height: 1.5; }
-    footer { margin-top: 2rem; font-size: 0.85rem; opacity: 0.8; }
+const products = [
+  { name: 'Ramoneska skórzana z podpinką', price: '1 099 zł', priceNote: 'z podpinką zimową',
+    text: 'Czarna ramoneska na co dzień i na uczelnię. Bez podpinki: 899 zł.', liner: 'Podpinka w zestawie' },
+  { name: 'Kurtka skórzana, gotowa na podpinkę', price: '899 zł', priceNote: 'bez podpinki',
+    text: 'Prosty krój z koniakowej skóry, do pracy i na weekend. Podpinkę dokupisz, kiedy przyjdzie zima.',
+    liner: 'Pasuje każda podpinka MONSUN w tym samym rozmiarze' },
+  { name: 'Płaszcz skórzany z podpinką', price: '1 399 zł', priceNote: 'z podpinką zimową',
+    text: 'Dłuższy krój za biodro, na mroźne poranki.', liner: 'Podpinka w zestawie' },
+  { name: 'Kurtka jeansowa z zamkiem na podpinkę', price: '449 zł', priceNote: 'bez podpinki',
+    text: 'Dla osób, które nie noszą skóry. Ten sam system podpinek.',
+    liner: 'Pasuje każda podpinka MONSUN w tym samym rozmiarze' },
+  { name: 'Podpinka pikowana', price: 'od 199 zł', priceNote: 'lekka 199 zł, zimowa 249 zł',
+    text: 'Nosisz ją w kurtce albo osobno, jako kamizelkę.', liner: 'Do wszystkich kurtek MONSUN' },
+];
+
+const posts = [
+  { title: 'Kurtka skórzana na zimę: jak nosić ją od listopada do kwietnia', author: 'Miłosz' },
+  { title: 'Jak dobrać rozmiar kurtki skórzanej, gdy kupujesz online', author: 'Filip' },
+  { title: 'Jak dbać o kurtkę skórzaną, gdy pada deszcz', author: 'Nishanth' },
+];
+---
+<Base
+  title="MONSUN: skórzana kurtka z podpinką na cały rok"
+  description="Skórzane i jeansowe kurtki z podpinką na zamek: jedna kurtka od styczniowego mrozu po kwietniowy deszcz. Projekt studencki PWr."
+>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1>Odzież na lata, nie na sezony.</h1>
+        <p class="lede">Skórzana kurtka z podpinką na zamek. Zimą podpinka jest w środku, wiosną zostaje w szafie, a kurtka ta sama.</p>
+        <div class="hero-actions">
+          <a class="btn" href="#lista">Zapisz się na listę startową</a>
+          <a class="quiet" href="#kolekcja">Zobacz kolekcję</a>
+        </div>
+      </div>
+      <HeroTemp />
+    </div>
+  </section>
+
+  <section id="sposoby" class="band">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Jedna kurtka, trzy sposoby noszenia</h2>
+        <p class="lede">Podpinka wpina się na zamek wzdłuż poły, od środka. Ten sam zamek mają wszystkie nasze kurtki, więc każda podpinka pasuje do każdej kurtki w tym samym rozmiarze.</p>
+      </div>
+      <div class="scale" role="img" aria-label="Zakresy temperatur: kurtka z podpinką od minus 10 do plus 5 stopni, sama kurtka od plus 4 do plus 18, sama podpinka od plus 7 do plus 16.">
+        <span class="way-name">Kurtka z podpinką</span>
+        <div class="way-bar"><i class="both">grudzień–luty</i></div>
+        <span class="way-name">Sama kurtka</span>
+        <div class="way-bar"><i class="shell">marzec–maj, wrzesień–listopad</i></div>
+        <span class="way-name">Sama podpinka</span>
+        <div class="way-bar"><i class="liner">pod płaszcz, w chłodnym biurze</i></div>
+        <div class="scale-axis" aria-hidden="true"><span>−10°C</span><span>−5°C</span><span>0°C</span><span>+5°C</span><span>+10°C</span><span>+15°C</span></div>
+        <p class="note way-note">Zakresy orientacyjne. Sprawdzimy je na prototypie i opiszemy wynik na blogu.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="kolekcja" class="band">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Kolekcja na start</h2>
+        <p class="lede">Pięć modeli. Niczego jeszcze nie sprzedajemy: ceny to planowane ceny premierowe, a lista startowa zbiera osoby, które chcą wiedzieć o premierze.</p>
+      </div>
+      <ul class="products">
+        {products.map((p) => (
+          <li>
+            <h3>{p.name}</h3>
+            <p class="price">{p.price}<small>{p.priceNote}</small></p>
+            <p class="meta">{p.text}</p>
+            <p class="fit">{p.liner}</p>
+          </li>
+        ))}
+      </ul>
+      <p class="note products-note">Zdjęcia i strony modeli dodamy w tym tygodniu.</p>
+    </div>
+  </section>
+
+  <section id="pochodzenie" class="band">
+    <div class="wrap provenance">
+      <div class="section-head">
+        <h2>Skąd będzie Twoja kurtka</h2>
+        <p class="lede">Kurtki chcemy szyć w Indiach, z rzemieślnikami, którzy pracują ze skórą od pokoleń. Piszemy w czasie przyszłym, bo MONSUN to projekt studencki i marka koncepcyjna.</p>
+      </div>
+      <dl class="facts">
+        <div><dt>Skóra</dt><dd>Owcza i bydlęca, z garbarni z certyfikatem Leather Working Group. To nasz wymóg dla dostawcy, nie gotowy fakt.</dd></div>
+        <div><dt>Szycie</dt><dd>Indie, zakład, który pokażemy z nazwy, gdy go wybierzemy.</dd></div>
+        <div><dt>Zamki</dt><dd>Metalowe, wymienne, ten sam system we wszystkich modelach.</dd></div>
+        <div><dt>Gwarancja</dt><dd>Planujemy 3 lata na szwy i zamki. Ustawowa rękojmia to 2 lata.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section id="blog" class="band">
+    <div class="wrap">
+      <div class="section-head"><h2>Wkrótce na blogu</h2></div>
+      <div class="posts">
+        {posts.map((post) => (
+          <article class="post-teaser">
+            <h3>{post.title}</h3>
+            <p class="note">Pisze: {post.author}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section id="lista" class="band">
+    <div class="wrap lista reading">
+      <h2>Lista startowa ruszy wkrótce</h2>
+      <p class="lede">Zapiszesz się tu adresem e-mail i napiszemy do Ciebie raz, gdy ruszy pierwsza seria. Nie zbieramy zamówień ani płatności.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { padding-block: clamp(2rem, 5vw, 4rem) clamp(3rem, 6vw, 5rem); }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(1.5rem, 4vw, 4rem); align-items: center; }
+  .hero-copy { display: grid; gap: 1.5rem; min-width: 0; }
+  .hero-copy h1 { font-size: var(--display); font-stretch: 75%; font-weight: 720; line-height: .92; letter-spacing: -.015em; }
+  .hero-copy .lede { max-width: 34ch; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: center; }
+  .quiet { color: var(--ink); font-weight: 500; }
+
+  .band { padding-block: clamp(3rem, 7vw, 6rem); }
+
+  .scale { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: .25rem 1rem; align-items: center; }
+  .way-name { font-weight: 650; font-stretch: 90%; }
+  .way-bar { display: grid; grid-template-columns: repeat(30, 1fr); height: 2.4rem; }
+  .way-bar i { display: flex; align-items: center; padding-inline: .75rem; border-radius: var(--r-tag); font-style: normal; font-size: var(--step--1); white-space: nowrap; overflow: hidden; }
+  .way-bar .both { grid-column: 1 / 16; background: var(--petrol); color: var(--canvas);
+    background-image: repeating-linear-gradient(45deg, transparent 0 9px, rgb(255 255 255 / .12) 9px 10px), repeating-linear-gradient(-45deg, transparent 0 9px, rgb(255 255 255 / .12) 9px 10px); }
+  .way-bar .shell { grid-column: 15 / 29; background: var(--ink); color: var(--canvas); }
+  .way-bar .liner { grid-column: 18 / 27; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--petrol); }
+  .scale-axis { grid-column: 2; display: grid; grid-template-columns: repeat(30, 1fr); font-size: var(--step--1); color: var(--ink-soft); font-variant-numeric: tabular-nums; border-top: 1px solid var(--line); padding-top: .3rem; }
+  .scale-axis span { grid-column: span 5; }
+  .way-note { grid-column: 2; }
+
+  .products { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); max-width: 900px; }
+  .products li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .25rem 1.5rem; padding: 1.1rem .5rem; border-bottom: 1px solid var(--line); }
+  .products h3 { font-size: var(--step-1); font-weight: 650; font-stretch: 90%; }
+  .price { font-variant-numeric: tabular-nums; font-weight: 650; text-align: right; white-space: nowrap; }
+  .price small { display: block; font-weight: 400; color: var(--ink-soft); font-size: var(--step--1); }
+  .meta { grid-column: 1; color: var(--ink-soft); font-size: .95rem; }
+  .fit { grid-column: 1 / -1; font-size: var(--step--1); color: var(--petrol); }
+  .products-note { margin-top: 1rem; }
+
+  .provenance { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: clamp(1.5rem, 4vw, 4rem); align-items: start; }
+  .facts { display: grid; margin: 0; border-top: 1px solid var(--line); }
+  .facts div { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 1rem; padding-block: .8rem; border-bottom: 1px solid var(--line); }
+  .facts dt { color: var(--cognac); font-weight: 600; }
+  .facts dd { margin: 0; }
+
+  .posts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1rem, 3vw, 2.5rem); }
+  .post-teaser { display: grid; gap: .6rem; align-content: start; padding-top: 1rem; border-top: 2px solid var(--ink); }
+  .post-teaser h3 { font-size: var(--step-2); font-stretch: 88%; font-weight: 650; line-height: 1.1; }
+
+  .lista { display: grid; gap: .8rem; padding-block: 2rem; border-top: 2px solid var(--saffron); }
+  .lista h2 { font-size: var(--step-4); font-stretch: 85%; font-weight: 700; line-height: 1.02; }
+  .lista .lede { max-width: 60ch; }
+
+  @media (max-width: 860px) {
+    .hero-grid, .provenance, .posts { grid-template-columns: minmax(0, 1fr); }
+    .scale { grid-template-columns: minmax(0, 1fr); }
+    .scale-axis, .way-note { grid-column: 1; }
+  }
+  @media (max-width: 480px) {
+    .facts div { grid-template-columns: minmax(0, 1fr); gap: .2rem; }
+    .way-bar i { padding-inline: .4rem; }
+  }
 </style>

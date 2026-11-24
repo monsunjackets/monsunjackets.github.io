@@ -1,0 +1,131 @@
+---
+// hero-temp: the liner zipping in. Contract: ADR 0001 §4. Details: README.md next to this file.
+// Global (unscoped) stylesheet on purpose: every class is prefixed ht-, and demo.html links the same file.
+import './hero-temp.css';
+
+export interface Props {
+  /** Prefix for the radio ids and the group name. Must be unique on the page. */
+  id?: string;
+  /** State rendered before any interaction. */
+  initial?: 'cold' | 'warm';
+  /** Colour of the drawn jacket: `cognac` is the leather token, `ink` follows the text colour (dark jacket in the light theme, pale in the dark one). */
+  tone?: 'ink' | 'cognac';
+  /** Visible label of the radio group. */
+  legend?: string;
+  coldLabel?: string;
+  warmLabel?: string;
+  /** Caption under the drawing; also the text announced after a change. */
+  captionCold?: string;
+  captionWarm?: string;
+  /** Text alternative of the drawing in each state. */
+  altCold?: string;
+  altWarm?: string;
+  /** Disclosure shown next to the caption. */
+  aiLabel?: string;
+  class?: string;
+}
+
+const {
+  id = 'temp',
+  initial = 'cold',
+  tone = 'cognac',
+  legend = 'Ta sama kurtka w dwóch porach roku',
+  coldLabel = '−10°C',
+  warmLabel = '+15°C',
+  captionCold = 'Styczeń. Podpinka wpięta.',
+  captionWarm = 'Kwiecień. Ta sama kurtka, podpinka wypięta.',
+  altCold = 'Rysunek rozpiętej kurtki skórzanej. W środku pikowana podpinka w kolorze petrol, wpięta na zamek biegnący wzdłuż poły aż do kołnierza.',
+  altWarm = 'Rysunek tej samej rozpiętej kurtki skórzanej bez podpinki. Wzdłuż poły widać zamek, na który wpina się podpinkę.',
+  aiLabel = 'Ilustracja przygotowana z AI',
+  class: className,
+} = Astro.props;
+
+const quilt = `${id}-quilt`;
+const rib = `${id}-rib`;
+---
+
+<figure class:list={['hero-temp', tone === 'ink' && 'hero-temp--ink', className]} data-hero-temp>
+  <div class="ht-frame">
+    <div class="ht-stage" data-ht-stage>
+      <!-- 1. shell: silhouette and the empty inside -->
+      <svg class="ht-layer" viewBox="20 44 360 450" aria-hidden="true" focusable="false">
+        <path class="ht-shell ht-shell-outline" d="M166 70Q200 60 234 70L242 78 312 112Q340 240 352 395L318 405 294 210 286 410H114L106 210 82 405 48 395Q60 240 88 112L158 78Z" />
+        <path class="ht-inside" d="M170 74H230L260 410H140Z" />
+        <path class="ht-seam" d="M191 79Q200 92 209 79" />
+        <rect class="ht-tag" x="189" y="100" width="22" height="11" rx="1.5" />
+      </svg>
+
+      <!-- 2. liner: uncovered by the clip-path on this element -->
+      <svg class="ht-layer ht-liner" viewBox="20 44 360 450" aria-hidden="true" focusable="false">
+        <defs>
+          <pattern id={quilt} width="21" height="21" patternUnits="userSpaceOnUse" patternTransform="rotate(45 200 240)">
+            <rect class="ht-quilt-ground" width="21" height="21" />
+            <path class="ht-quilt-stitch" d="M0 0H21M0 0V21" />
+          </pattern>
+          <pattern id={rib} width="4.5" height="8" patternUnits="userSpaceOnUse">
+            <rect class="ht-quilt-ground" width="4.5" height="8" />
+            <path class="ht-quilt-stitch" d="M0 0V8" />
+          </pattern>
+        </defs>
+        <path d="M160 86H240L268 412H132Z" fill={`url(#${quilt})`} />
+        <path d="M165 72H235L237 91H163Z" fill={`url(#${rib})`} />
+        <path class="ht-binding" d="M163 91H237M184 91 155 404M216 91 245 404M140 404H260" />
+      </svg>
+
+      <!-- 3. front panels, lapels, seams and the zip teeth the liner closes onto -->
+      <svg class="ht-layer" viewBox="20 44 360 450" aria-hidden="true" focusable="false">
+        <path class="ht-shell" d="M230 74 242 78 312 112 294 210 286 410H260ZM170 74 158 78 88 112 106 210 114 410H140Z" />
+        <path class="ht-lapel ht-seam" d="M230 74 246 80 279 128 262 137 275 153 245 246ZM170 74 154 80 121 128 138 137 125 153 155 246Z" />
+        <path class="ht-seam" d="M306 116Q286 162 294 210M94 116Q114 162 106 210M260 392H287M140 392H113M315 373 350 365M85 373 50 365" />
+        <path class="ht-teeth ht-teeth--pocket" d="M271 298 284 352M129 298 116 352" />
+        <circle class="ht-dot" cx="269" cy="150" r="2.6" />
+        <circle class="ht-dot" cx="131" cy="150" r="2.6" />
+        <path class="ht-teeth" d="M264 404 235 80M136 404 165 80" />
+      </svg>
+
+      <!-- 4. zip pull: moved by the transform on this element; the script makes it a pointer control -->
+      <svg class="ht-layer ht-pull" data-ht-pull viewBox="20 44 360 450" aria-hidden="true" focusable="false">
+        <g class="ht-grip" data-ht-grip>
+          <circle class="ht-grip-hit" cx="264" cy="412" r="28" />
+          <rect class="ht-pull-metal" x="259.5" y="408" width="9" height="24" rx="4.5" />
+          <circle class="ht-pull-hole" cx="264" cy="425" r="1.9" />
+          <rect class="ht-pull-metal" x="256" y="395" width="16" height="18" rx="4" />
+        </g>
+      </svg>
+
+      <p class="ht-vh ht-is-cold">{altCold}</p>
+      <p class="ht-vh ht-is-warm">{altWarm}</p>
+    </div>
+
+    <p class="ht-readout" aria-hidden="true">
+      <span class="ht-readout-cold">{coldLabel}</span>
+      <span class="ht-readout-warm">{warmLabel}</span>
+    </p>
+  </div>
+
+  <fieldset class="ht-switch">
+    <legend>{legend}</legend>
+    <div class="ht-options">
+      <input class="ht-radio ht-radio--cold" type="radio" name={id} id={`${id}-cold`} value="cold" checked={initial === 'cold'} data-ht-radio="cold" />
+      <label for={`${id}-cold`}>{coldLabel}</label>
+      <input class="ht-radio ht-radio--warm" type="radio" name={id} id={`${id}-warm`} value="warm" checked={initial === 'warm'} data-ht-radio="warm" />
+      <label for={`${id}-warm`}>{warmLabel}</label>
+    </div>
+  </fieldset>
+
+  <p class="ht-vh" aria-live="polite" data-ht-live></p>
+
+  <figcaption class="ht-caption">
+    <span class="ht-caption-state">
+      <span class="ht-caption-cold" data-ht-caption="cold">{captionCold}</span>
+      <span class="ht-caption-warm" data-ht-caption="warm">{captionWarm}</span>
+    </span>
+    <span>{aiLabel}</span>
+  </figcaption>
+</figure>
+
+<script>
+  import { initHeroTemp } from './hero-temp.ts';
+
+  document.querySelectorAll<HTMLElement>('[data-hero-temp]').forEach(initHeroTemp);
+</script>

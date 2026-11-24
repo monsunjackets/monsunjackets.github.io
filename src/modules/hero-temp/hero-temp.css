@@ -1,0 +1,148 @@
+/* hero-temp: the liner zipping in.
+   One number drives the whole picture: --ht-p, 1 = liner zipped in (−10°C), 0 = liner out (+15°C).
+   The radios set it through :has(); the script only overrides it while the visitor drags the zip pull.
+   Colours come from tokens.css only. Class prefix: ht-. */
+
+.hero-temp {
+  --ht-p: 1;
+  --ht-shell: var(--cognac);
+  position: relative;
+  display: grid;
+  gap: .9rem;
+  margin: 0;
+  min-width: 0;
+}
+.hero-temp:has(.ht-radio--warm:checked) { --ht-p: 0; }
+.hero-temp--ink { --ht-shell: var(--ink); }
+
+/* ---------- stage: four stacked drawings with one shared viewBox ---------- */
+.ht-frame { position: relative; }
+.ht-stage {
+  position: relative;
+  aspect-ratio: 4 / 5;            /* reserved: no layout shift */
+  overflow: hidden;
+  border-radius: var(--r-media);
+  background: var(--sunk);
+  box-shadow: 0 1px 1px hsl(var(--shadow-color) / .12), 0 6px 14px hsl(var(--shadow-color) / .14), 0 24px 48px hsl(var(--shadow-color) / .16);
+}
+.ht-layer { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+
+/* the liner is uncovered from the hem up; the edge leans so the zip side leads */
+.ht-liner {
+  clip-path: polygon(
+    0 calc(104% - var(--ht-p) * 99%),
+    100% calc(74% - var(--ht-p) * 69%),
+    100% 110%,
+    0 110%
+  );
+}
+/* the pull travels the zip: 29 × 324 units of the 360 × 450 viewBox */
+.ht-pull {
+  pointer-events: none;
+  transform: translate(calc(var(--ht-p) * -8.056%), calc(var(--ht-p) * -72%));
+}
+
+.ht-shell { fill: var(--ht-shell); }
+.ht-shell-outline { stroke: var(--ht-shell); stroke-width: 7; stroke-linejoin: round; }
+.ht-inside { fill: var(--sunk); fill-opacity: .42; }
+.ht-lapel { fill: var(--sunk); fill-opacity: .13; }
+.ht-seam { fill: none; stroke: var(--canvas); stroke-opacity: .34; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.ht-teeth { fill: none; stroke: var(--canvas); stroke-opacity: .85; stroke-width: 2.6; stroke-dasharray: 3.5 3; }
+.ht-teeth--pocket { stroke-opacity: .5; stroke-width: 2; stroke-dasharray: 2.5 2.5; }
+.ht-dot { fill: var(--canvas); fill-opacity: .6; }
+.ht-tag { fill: var(--canvas); fill-opacity: .5; }
+.ht-quilt-ground { fill: var(--petrol); }
+.ht-quilt-stitch { fill: none; stroke: var(--canvas); stroke-opacity: .4; stroke-width: 1.3; }
+.ht-binding { fill: none; stroke: var(--canvas); stroke-opacity: .5; stroke-width: 1.5; }
+.ht-pull-metal { fill: var(--saffron); stroke: var(--on-saffron); stroke-opacity: .35; stroke-width: 1; }
+.ht-pull-hole { fill: var(--on-saffron); }
+.ht-grip-hit { fill: var(--saffron); fill-opacity: 0; }
+
+/* pointer sugar, switched on by the script */
+.hero-temp.is-enhanced .ht-grip { pointer-events: auto; cursor: grab; touch-action: none; }
+.hero-temp.is-dragging .ht-grip { cursor: grabbing; }
+
+/* ---------- readout: the type carries the weather ---------- */
+.ht-readout {
+  position: absolute;
+  left: -1rem;
+  bottom: 1rem;
+  display: grid;
+  margin: 0;
+  padding: .15rem .9rem .3rem;
+  border-radius: 0 var(--r-tag) var(--r-tag) 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-size: clamp(2.75rem, 5.6vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-stretch: 75%;
+  font-weight: 800;
+}
+.hero-temp:has(.ht-radio--warm:checked) .ht-readout { font-stretch: 118%; font-weight: 300; }
+.ht-readout span { grid-area: 1 / 1; }
+/* The cold state is written without :has(), so a browser that drops the :has() rules still shows one state. */
+.ht-readout-warm { opacity: 0; }
+.hero-temp:has(.ht-radio--warm:checked) .ht-readout-cold { opacity: 0; }
+.hero-temp:has(.ht-radio--warm:checked) .ht-readout-warm { opacity: 1; }
+
+/* ---------- switch: a real radio group ---------- */
+.ht-switch { display: grid; gap: .5rem; margin: 0; padding: 0; border: 0; min-width: 0; }
+.ht-switch legend { padding: 0; margin-bottom: .15rem; font-size: var(--step--1); color: var(--ink-soft); }
+.ht-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.ht-radio { position: absolute; opacity: 0; pointer-events: none; }
+.ht-radio + label {
+  cursor: pointer;
+  padding: .35rem 1rem .45rem;
+  border-radius: var(--r-pill);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink-soft);
+  font-size: var(--step-2);
+  font-stretch: 80%;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.ht-radio:checked + label { background: var(--ink); color: var(--canvas); box-shadow: none; }
+.ht-radio:focus-visible + label { outline: 2px solid var(--saffron); outline-offset: 3px; }
+
+/* ---------- caption and state texts ---------- */
+.ht-caption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem 1rem; font-size: var(--step--1); color: var(--ink-soft); }
+/* both captions share one cell, so the longer one reserves the height and switching moves nothing */
+.ht-caption-state { display: grid; }
+.ht-caption-state span { grid-area: 1 / 1; }
+.ht-caption-warm { visibility: hidden; }
+.hero-temp:has(.ht-radio--warm:checked) .ht-caption-cold { visibility: hidden; }
+.hero-temp:has(.ht-radio--warm:checked) .ht-caption-warm { visibility: visible; }
+.ht-is-warm { display: none; }
+.hero-temp:has(.ht-radio--warm:checked) .ht-is-cold { display: none; }
+.hero-temp:has(.ht-radio--warm:checked) .ht-is-warm { display: block; }
+.ht-vh { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* System colours, not brand colours: forced-colours mode drops backgrounds and shadows, which carry the checked state. */
+@media (forced-colors: active) {
+  .ht-radio + label { border: 1px solid CanvasText; }
+  .ht-radio:checked + label { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+}
+
+/* Without :has() the drawing stays in the cold state, so a switch that does nothing is not shown. */
+@supports not selector(:has(*)) {
+  .ht-switch { display: none; }
+}
+
+/* ---------- motion ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .ht-liner { transition: clip-path .95s var(--ease); }
+  .ht-pull { transition: transform .95s var(--ease); }
+  /* documented exception to the transform/opacity/filter/clip-path rule (ADR 0001 §4.6) */
+  .ht-readout { transition: font-stretch .95s var(--ease), font-weight .95s var(--ease); }
+  .ht-readout span { transition: opacity .4s var(--ease); }
+  .hero-temp.is-dragging .ht-liner,
+  .hero-temp.is-dragging .ht-pull { transition: none; }
+}
+
+@media (max-width: 860px) {
+  .hero-temp { max-width: 420px; }
+}
