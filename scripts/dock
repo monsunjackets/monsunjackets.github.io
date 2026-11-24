@@ -57,10 +57,11 @@ trap - TERM HUP INT
 
 # Detection, not containment: the output folders stay writable, so they must never hold anything that
 # git, an editor or a Claude session would act on when someone opens or reads them.
+# Symlinks are checked only in dist and .astro: node_modules/.bin legitimately holds them.
 scan() {
-  find "${ROOT}/node_modules" "${ROOT}/dist" "${ROOT}/.astro" -name .git -print || return 1
-  find "${ROOT}/dist" "${ROOT}/.astro" \( -type l -o -name .claude -o -name CLAUDE.md -o -name CLAUDE.local.md \
-    -o -name AGENTS.md -o -name .mcp.json -o -name .vscode \) -print || return 1
+  find "${ROOT}/node_modules" "${ROOT}/dist" "${ROOT}/.astro" \( -name .git -o -name .claude -o -name CLAUDE.md \
+    -o -name CLAUDE.local.md -o -name AGENTS.md -o -name .mcp.json -o -name .vscode \) -print || return 1
+  find "${ROOT}/dist" "${ROOT}/.astro" -type l -print || return 1
 }
 if ! planted="$(scan)"; then printf 'scripts/dock: could not scan the output folders\n' >&2; exit 97; fi
 if [ -n "$planted" ]; then

@@ -27,8 +27,9 @@ With Docker Desktop the published port is reachable from the Windows browser.
 The container always sees the checkout read-only. It can write only `node_modules/`, `dist/` and
 `.astro/`; npm commands that change dependencies can also write `package.json`, `package-lock.json` and
 `.npm-cache/`. Install scripts are off twice (`.npmrc` and the environment). The wrapper refuses to mount
-a writable folder that is a symlink, and after each run it fails (exit 97) if the output folders contain a
-`.git`, a symlink, `.claude`, `.vscode`, `.mcp.json`, `CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md`.
+a writable folder that is a symlink. After each run it fails (exit 97) if `node_modules/`, `dist/` or
+`.astro/` contain a `.git`, `.claude`, `.vscode`, `.mcp.json`, `CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md`,
+or if `dist/` or `.astro/` contain a symlink.
 
 ## Publishing
 
