@@ -1,3 +1,8 @@
+---
+// Placeholder page, ported 1:1 from the old index.html so that switching Pages to Actions changes nothing visible.
+import { Image } from 'astro:assets';
+import logo from '../assets/logo.png';
+---
 <!doctype html>
 <html lang="pl">
 <head>
@@ -5,8 +10,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MONSUN · Odzież na lata, nie na sezony</title>
   <meta name="description" content="MONSUN: skórzane kurtki z podpinką na zamek, jedna kurtka na cały rok. Projekt studencki PWr. Strona w budowie.">
-  <!-- Placeholder until the real site is built; no external fonts or trackers, so no cookie notice is needed yet. -->
-  <style>
+  <link rel="canonical" href="https://monsunjackets.github.io/">
+</head>
+<body>
+  <Image src={logo} alt="MONSUN" widths={[420, 840]} sizes="min(420px, 85vw)" loading="eager" />
+  <h1>Odzież na lata, nie na sezony.</h1>
+  <p>Skórzane kurtki z podpinką na zamek: jedna kurtka na cały rok. Strona w budowie.</p>
+  <footer>Projekt studencki PWr · Digital Marketing and Social Media 2026/27</footer>
+</body>
+</html>
+
+<style is:global>
     :root { --petrol: #1F4E5A; --cream: #FFF8EC; --orange: #E85214; }
     * { box-sizing: border-box; }
     body {
@@ -19,12 +33,4 @@
     h1 { margin: 0; font-size: clamp(1.4rem, 4vw, 2rem); }
     p { margin: 0; max-width: 32rem; line-height: 1.5; }
     footer { margin-top: 2rem; font-size: 0.85rem; opacity: 0.8; }
-  </style>
-</head>
-<body>
-  <img src="assets/logo.png" alt="MONSUN">
-  <h1>Odzież na lata, nie na sezony.</h1>
-  <p>Skórzane kurtki z podpinką na zamek: jedna kurtka na cały rok. Strona w budowie.</p>
-  <footer>Projekt studencki PWr · Digital Marketing and Social Media 2026/27</footer>
-</body>
-</html>
+</style>

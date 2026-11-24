@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# Runs npm, npx, node or astro in a throwaway Node container. This host also holds unrelated work
+# credentials, so code from npm packages never runs on it (ADR 0001 §1, amended after reviews G1–G1c).
+#
+# The checkout is always mounted read-only. Writable mounts:
+#   - every command: node_modules, dist and .astro (build output), with a throwaway npm cache;
+#   - npm commands that change dependencies: also package.json, package-lock.json and the npm cache.
+# Writable folders must be plain directories (a symlink there would make Docker mount its target).
+# After each run the output folders are scanned for git repos, Claude or editor config and symlinks.
+#
+# Usage: scripts/dock npm ci | PORT=4321 scripts/dock npm run dev | scripts/dock npm run build
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+IMAGE="node:24-bookworm-slim@sha256:873f586f3794f52281bd039bf02c048a0be08fde619338f9941bad1eb6b34530"
+tty=(); if [ -t 0 ] && [ -t 1 ]; then tty=(-t); fi
+ports=(); if [ -n "${PORT:-}" ]; then ports=(-p "127.0.0.1:${PORT}:${PORT}"); fi
+
+dirs=(node_modules dist .astro); files=(); cache=/tmp/.npm
+if [ "${1:-}" = npm ]; then
+  case "${2:-}" in
+    ci|clean-install) dirs+=(.npm-cache); cache=/work/.npm-cache ;;
+    install|i|add|uninstall|un|rm|remove|update|up|upgrade)
+      dirs+=(.npm-cache); cache=/work/.npm-cache; files=(package.json package-lock.json) ;;
+  esac
+fi
+
+refuse() { printf 'scripts/dock: %s\n' "$1" >&2; exit 98; }
+mounts=(--mount "type=bind,src=${ROOT},dst=/work,readonly")
+for dir in "${dirs[@]}"; do
+  path="${ROOT}/${dir}"
+  if [ -L "$path" ] || { [ -e "$path" ] && [ ! -d "$path" ]; }; then refuse "${dir} is not a plain directory; refusing to mount it"; fi
+  mkdir -p "$path"
+  mounts+=(--mount "type=bind,src=${path},dst=/work/${dir}")
+done
+for file in "${files[@]}"; do
+  path="${ROOT}/${file}"
+  if [ -L "$path" ] || [ ! -f "$path" ]; then refuse "${file} is not a plain file; refusing to mount it"; fi
+  mounts+=(--mount "type=bind,src=${path},dst=/work/${file}")
+done
+
+# Run in the background and forward signals, so killing this script also stops the container.
+docker run --rm -i "${tty[@]}" --init \
+  --user "$(id -u):$(id -g)" --cap-drop=ALL --security-opt=no-new-privileges \
+  "${mounts[@]}" -w /work \
+  -e HOME=/tmp -e npm_config_cache="${cache}" -e npm_config_ignore_scripts=true -e ASTRO_TELEMETRY_DISABLED=1 \
+  -e PORT="${PORT:-}" -e MONSUN_LAB="${MONSUN_LAB:-}" \
+  "${ports[@]}" "$IMAGE" "$@" <&0 &
+pid=$!
+trap 'kill -TERM "$pid" 2>/dev/null' TERM HUP
+trap 'kill -INT "$pid" 2>/dev/null' INT
+status=0
+while :; do
+  if wait "$pid"; then status=0; else status=$?; fi
+  kill -0 "$pid" 2>/dev/null || break
+done
+trap - TERM HUP INT
+
+# Detection, not containment: the output folders stay writable, so they must never hold anything that
+# git, an editor or a Claude session would act on when someone opens or reads them.
+# Symlinks are checked only in dist and .astro: node_modules/.bin legitimately holds them.
+scan() {
+  find "${ROOT}/node_modules" "${ROOT}/dist" "${ROOT}/.astro" \( -name .git -o -name .claude -o -name CLAUDE.md \
+    -o -name CLAUDE.local.md -o -name AGENTS.md -o -name .mcp.json -o -name .vscode \) -print || return 1
+  find "${ROOT}/dist" "${ROOT}/.astro" -type l -print || return 1
+}
+if ! planted="$(scan)"; then printf 'scripts/dock: could not scan the output folders\n' >&2; exit 97; fi
+if [ -n "$planted" ]; then
+  printf 'scripts/dock: unexpected files in build output; delete them and find out what wrote them:\n%s\n' "$planted" >&2
+  exit 97
+fi
+exit "$status"
