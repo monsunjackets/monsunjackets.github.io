@@ -8,6 +8,8 @@ export default defineConfig({
   trailingSlash: 'always',
   build: { format: 'directory' },
   devToolbar: { enabled: false },
+  // Shiki writes inline styles, which the CSP blocks; posts need no code highlighting.
+  markdown: { syntaxHighlight: false },
   security: {
     csp: {
       algorithm: 'SHA-256',
