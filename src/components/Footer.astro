@@ -1,0 +1,29 @@
+---
+import Logo from './Logo.astro';
+---
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="disclosure">
+      <Logo class="footer-logo" quiltId="footer-logo-quilt" />
+      <p><strong>Projekt studencki PWr.</strong> MONSUN to marka koncepcyjna przygotowana na zajęcia z marketingu
+        cyfrowego. Niczego nie sprzedajemy.</p>
+    </div>
+    <ul aria-label="Na stronie">
+      <li><a href="/#sposoby">Jak działa podpinka</a></li>
+      <li><a href="/#kolekcja">Kolekcja</a></li>
+      <li><a href="/#pochodzenie">Skąd będzie Twoja kurtka</a></li>
+    </ul>
+    <p class="note">Strona nie używa plików cookie ani narzędzi analitycznych.</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer { border-top: 1px solid var(--line); background: var(--sunk); }
+  .wrap { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 3fr) minmax(0, 3fr); gap: 2rem; padding-block: 3rem; font-size: .95rem; }
+  .disclosure { display: grid; gap: .8rem; color: var(--ink-soft); }
+  .disclosure strong { color: var(--ink); }
+  .disclosure :global(svg) { height: 1.1rem; width: auto; aspect-ratio: 9757.7 / 1687; color: var(--ink); }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; align-content: start; }
+  a { color: var(--ink); }
+  @media (max-width: 860px) { .wrap { grid-template-columns: minmax(0, 1fr); } }
+</style>
