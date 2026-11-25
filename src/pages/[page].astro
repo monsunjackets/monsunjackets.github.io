@@ -3,6 +3,7 @@
 // A page is generated when its Markdown file exists in src/content/pages/.
 import { getCollection, type CollectionEntry } from 'astro:content';
 import EditorialPage from '../components/editorial/EditorialPage.astro';
+import PrivacyAnalytics from '../components/editorial/PrivacyAnalytics.astro';
 import PrivacyController from '../components/editorial/PrivacyController.astro';
 import SizeTables from '../components/editorial/SizeTables.astro';
 
@@ -19,6 +20,11 @@ interface Props {
 const { page } = Astro.props;
 ---
 <EditorialPage page={page}>
-  {page.id === 'prywatnosc' && <PrivacyController slot="before" />}
+  {page.id === 'prywatnosc' && (
+    <Fragment slot="before">
+      <PrivacyController />
+      <PrivacyAnalytics />
+    </Fragment>
+  )}
   {page.id === 'rozmiary' && <SizeTables />}
 </EditorialPage>
