@@ -1,0 +1,63 @@
+---
+// Size guide (ADR 0001 §2): the page text from src/content/pages/rozmiary.md when it exists (chunk B1), then the
+// measurements of every product, from the same data as the product pages. Without the page text the page still
+// builds, with a short fixed introduction, so product pages can always link here.
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/shop/Breadcrumbs.astro';
+import SizeTable from '../../components/shop/SizeTable.astro';
+import { getProducts, productPath } from '../../components/shop/content.ts';
+import { isoDateTime, polishDate } from '../../lib/dates.ts';
+import { breadcrumbListJsonLd } from '../../lib/schema.ts';
+import { checkDescription, checkTitle } from '../../lib/seo.ts';
+
+// getCollection rather than getEntry: the entry may be missing, and getEntry warns about that on every build.
+const [page] = await getCollection('pages', (entry) => entry.id === 'rozmiary');
+const Content = page ? (await render(page)).Content : undefined;
+const title = page?.data.title ?? 'Rozmiary kurtek MONSUN z podpinką i bez niej';
+const description = page?.data.description
+  ?? 'Wymiary kurtek i podpinki MONSUN w każdym rozmiarze, z podpinką i bez niej. Każda podpinka będzie pasować do każdej kurtki w tym samym rozmiarze.';
+const products = await getProducts();
+
+const crumbs = [
+  { name: 'MONSUN', path: '/' },
+  { name: 'Rozmiary', path: '/rozmiary/' },
+];
+---
+<Base title={checkTitle(title)} description={checkDescription(description)} jsonLd={[breadcrumbListJsonLd(crumbs)]}>
+  <div class="wrap page">
+    <Breadcrumbs items={crumbs} />
+    <h1>{title}</h1>
+
+    <div class="reading panel prose">
+      {Content ? <Content /> : (
+        <p>Wszystkie kurtki MONSUN mają mieć ten sam zamek, więc każda podpinka będzie pasować do każdej kurtki w tym samym rozmiarze. Poniżej wymiary każdego modelu.</p>
+      )}
+    </div>
+
+    {products.map((product) => (
+      <section class="reading panel" aria-labelledby={`rozmiary-${product.id}`}>
+        <h2 id={`rozmiary-${product.id}`}><a href={productPath(product)}>{product.data.name}</a></h2>
+        <SizeTable sizes={product.data.sizes} liner={product.data.liner} sizesAreExample={product.data.sizesAreExample} caption={product.data.name} />
+      </section>
+    ))}
+
+    {page && <p class="note">Aktualizacja: <time datetime={isoDateTime(page.data.updated)}>{polishDate(page.data.updated)}</time></p>}
+  </div>
+</Base>
+
+<style>
+  .page { display: grid; gap: 1.5rem; padding-bottom: clamp(3rem, 7vw, 5rem); }
+  .page > * { max-width: 820px; min-width: 0; }
+  h1 { padding-top: 1rem; font-size: var(--step-4); font-stretch: 80%; font-weight: 720; line-height: 1; }
+  .panel {
+    display: grid; gap: .9rem; align-content: start;
+    padding: clamp(1rem, 2.5vw, 1.5rem) 1rem; margin-inline: -1rem; border-radius: var(--r-media);
+  }
+  .panel h2, .prose :global(h2) { font-size: var(--step-2); font-stretch: 85%; font-weight: 700; line-height: 1.05; }
+  .panel h2 a { color: inherit; }
+  .prose :global(:is(p, ul, ol)) { max-width: 64ch; }
+  @media (max-width: 480px) {
+    .panel { border-radius: 0; }
+  }
+</style>

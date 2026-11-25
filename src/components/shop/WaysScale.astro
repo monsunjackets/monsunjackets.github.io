@@ -1,0 +1,74 @@
+---
+// One jacket, three ways: each way drawn to scale on one temperature axis (prototype „Jedna kurtka, trzy sposoby
+// noszenia”). A table with one column per degree; each bar's colspan covers its range (see ways.ts). The way's
+// name heads its bar, so the layout is the same at every width.
+// The first way is drawn quilted (liner in), the second solid (shell only), the third outlined (liner alone), in
+// the order of the `ways` list on the /podpinka/ page.
+import { formatCelsius } from './format.ts';
+import { waysScale, type Way } from './ways.ts';
+
+export interface Props {
+  ways: readonly Way[];
+  /** Names the table for assistive technology. */
+  caption: string;
+}
+const { ways, caption } = Astro.props;
+const scale = waysScale(ways);
+const STEP = 5;
+const look = ['both', 'shell', 'liner'];
+---
+<div class="ways-scale">
+  <table>
+    <caption class="visually-hidden">{caption}</caption>
+    <colgroup><col span={scale.columns} /></colgroup>
+    {scale.rows.map((row, index) => (
+      <tbody>
+        <tr>
+          <th colspan={scale.columns} scope="rowgroup">{row.way.name}{row.way.note && <span class="way-note">, {row.way.note}</span>}</th>
+        </tr>
+        <tr class="bar-row">
+          {row.lead > 0 && <td colspan={row.lead} />}
+          <td colspan={row.span} class:list={['bar', look[index % look.length]]}>
+            {row.way.months}<span class="visually-hidden">, orientacyjnie od {formatCelsius(row.way.fromC)} do {formatCelsius(row.way.toC)}</span>
+          </td>
+          {row.tail > 0 && <td colspan={row.tail} />}
+        </tr>
+      </tbody>
+    ))}
+    <tfoot aria-hidden="true">
+      <tr class="axis">
+        {scale.ticks.map((tick) => <td colspan={STEP}>{formatCelsius(tick)}</td>)}
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<style>
+  .ways-scale { min-width: 0; }
+  table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
+  th { text-align: left; padding: .9rem 0 .3rem; font-weight: 650; font-stretch: 90%; }
+  .way-note { font-weight: 400; color: var(--ink-soft); }
+  td { padding: 0; }
+  .bar-row td { height: 2.4rem; }
+  .bar {
+    padding: .35rem .75rem; border-radius: var(--r-tag); font-size: var(--step--1); line-height: 1.25;
+    overflow: hidden; overflow-wrap: anywhere;
+  }
+  .both {
+    --quilt: color-mix(in srgb, var(--canvas) 16%, transparent);
+    background-color: var(--petrol); color: var(--canvas);
+    background-image:
+      repeating-linear-gradient(45deg, transparent 0 9px, var(--quilt) 9px 10px),
+      repeating-linear-gradient(-45deg, transparent 0 9px, var(--quilt) 9px 10px);
+  }
+  .shell { background: var(--ink); color: var(--canvas); }
+  .liner { color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--petrol); }
+  .axis td {
+    padding-top: .3rem; border-top: 1px solid var(--line);
+    font-size: var(--step--1); color: var(--ink-soft); font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  @media (max-width: 480px) {
+    .bar { padding-inline: .4rem; }
+    .axis td { font-size: .72rem; }
+  }
+</style>

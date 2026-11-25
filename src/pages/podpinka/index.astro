@@ -1,0 +1,96 @@
+---
+// How the liner works, and the poster and flyer QR target (ADR 0001 §2): the page text, the three ways on one
+// temperature scale, which liner fits which jacket, and the launch-list section (#lista).
+import { getEntry, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/shop/Breadcrumbs.astro';
+import WaysScale from '../../components/shop/WaysScale.astro';
+import LaunchList from '../../modules/launch-list/index.astro';
+import { getProducts, productPath } from '../../components/shop/content.ts';
+import { isoDateTime, polishDate } from '../../lib/dates.ts';
+import { breadcrumbListJsonLd } from '../../lib/schema.ts';
+import { checkDescription, checkTitle } from '../../lib/seo.ts';
+
+const page = await getEntry('pages', 'podpinka');
+if (!page) throw new Error('src/content/pages/podpinka.md is missing; /podpinka/ is printed on the posters and must exist');
+const { Content } = await render(page);
+const { title, description, updated, ways = [] } = page.data;
+
+const products = await getProducts();
+const jackets = products.filter((product) => product.data.liner !== 'liner');
+const liners = products.filter((product) => product.data.liner === 'liner');
+
+const crumbs = [
+  { name: 'MONSUN', path: '/' },
+  { name: 'Jak działa podpinka', path: '/podpinka/' },
+];
+---
+<Base title={checkTitle(title)} description={checkDescription(description)} jsonLd={[breadcrumbListJsonLd(crumbs)]}>
+  <div class="wrap page">
+    <Breadcrumbs items={crumbs} />
+    <header class="head">
+      <h1>{title}</h1>
+      <p><a href="#lista">Przejdź do listy startowej</a></p>
+    </header>
+
+    <div class="reading panel prose"><Content /></div>
+
+    {ways.length > 0 && (
+      <section class="reading panel" aria-labelledby="sposoby">
+        <h2 id="sposoby">Jedna kurtka, trzy sposoby noszenia</h2>
+        <WaysScale ways={ways} caption="Sposoby noszenia kurtki i podpinki z orientacyjnym zakresem temperatur" />
+        <p class="note">Zakresy orientacyjne. Sprawdzimy je na prototypie.</p>
+      </section>
+    )}
+
+    {jackets.length > 0 && (
+      <section class="reading panel" aria-labelledby="zgodnosc">
+        <h2 id="zgodnosc">Która podpinka pasuje do której kurtki</h2>
+        <p>Wszystkie kurtki MONSUN mają mieć ten sam zamek, więc każda podpinka będzie pasować do każdej kurtki w tym samym rozmiarze.</p>
+        <div class="table-wrap" role="region" aria-label="Kurtki i podpinka" tabindex="0">
+          <table>
+            <thead><tr><th scope="col">Model</th><th scope="col">Podpinka</th></tr></thead>
+            <tbody>
+              {jackets.map((jacket) => (
+                <tr>
+                  <th scope="row"><a href={productPath(jacket)}>{jacket.data.name}</a></th>
+                  <td>{jacket.data.liner === 'included' ? 'Podpinka zimowa w zestawie' : 'Bez podpinki, będzie można ją dokupić'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {liners.map((liner) => (
+          <p>Samą podpinkę opisujemy na stronie <a href={productPath(liner)}>{liner.data.name}</a>.</p>
+        ))}
+        <p>Wymiary każdego modelu z podpinką i bez niej: <a href="/rozmiary/">Rozmiary</a>.</p>
+      </section>
+    )}
+
+    <p class="note">Aktualizacja: <time datetime={isoDateTime(updated)}>{polishDate(updated)}</time></p>
+
+    <LaunchList source="podpinka" />
+  </div>
+</Base>
+
+<style>
+  .page { display: grid; gap: 1.5rem; padding-bottom: clamp(3rem, 7vw, 5rem); }
+  .page > * { max-width: 820px; min-width: 0; }
+  .head { display: grid; gap: 1rem; padding-top: 1rem; }
+  h1 { font-size: var(--step-4); font-stretch: 80%; font-weight: 720; line-height: 1; }
+  .panel {
+    display: grid; gap: .9rem; align-content: start;
+    padding: clamp(1rem, 2.5vw, 1.5rem) 1rem; margin-inline: -1rem; border-radius: var(--r-media);
+  }
+  .panel h2, .prose :global(h2) { font-size: var(--step-3); font-stretch: 85%; font-weight: 700; line-height: 1.05; }
+  .panel > p, .prose :global(:is(p, ul, ol)) { max-width: 64ch; }
+  .prose :global(:is(h2, h3):not(:first-child)) { margin-top: .75rem; }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+  th, td { text-align: left; padding: .6rem .8rem; border-bottom: 1px solid var(--line); }
+  thead th { font-weight: 600; color: var(--ink-soft); font-size: var(--step--1); }
+  tbody th { font-weight: 600; }
+  @media (max-width: 480px) {
+    .panel { border-radius: 0; }
+  }
+</style>
