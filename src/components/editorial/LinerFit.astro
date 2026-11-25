@@ -1,14 +1,10 @@
 ---
 // Which models come with the liner and which take it (ADR 0001 §2: /podpinka/ covers compatibility). Rows come
-// from the products collection, so the table grows with the catalogue. The wording matches the home page.
-import { productsInOrder } from './content.ts';
+// from the products collection, so the table grows with the catalogue; the wording is linerLabel(), as everywhere.
+import { getProducts } from '../shop/content.ts';
+import { linerLabel } from '../shop/format.ts';
 
-const LINER = {
-  included: 'Podpinka w zestawie',
-  compatible: 'Będzie pasować każda podpinka MONSUN w tym samym rozmiarze',
-  liner: 'Do wszystkich kurtek MONSUN',
-} as const;
-const products = await productsInOrder();
+const products = await getProducts();
 ---
 {products.length > 0 && (
   <section class="fit" aria-labelledby="pasuje">
@@ -18,7 +14,7 @@ const products = await productsInOrder();
         <thead><tr><th scope="col">Model</th><th scope="col">Podpinka</th></tr></thead>
         <tbody>
           {products.map((product) => (
-            <tr><th scope="row">{product.data.name}</th><td>{LINER[product.data.liner]}</td></tr>
+            <tr><th scope="row">{product.data.name}</th><td>{linerLabel(product.data.liner)}</td></tr>
           ))}
         </tbody>
       </table>

@@ -1,6 +1,7 @@
 ---
-// Visible breadcrumbs. Pages pass the same list to breadcrumbListJsonLd(), so the trail and the JSON-LD agree.
-import type { BreadcrumbInput } from '../../lib/schema.ts';
+// Visible breadcrumbs on the shop and editorial pages. Pages pass the same list to breadcrumbListJsonLd(), so the
+// trail and the JSON-LD agree.
+import type { BreadcrumbInput } from '../lib/schema.ts';
 
 export interface Props {
   /** From the home page to the current page; the last item is the current page and is not a link. */
@@ -24,5 +25,6 @@ const last = items.length - 1;
   /* The separator is decoration: the empty alt text keeps screen readers from reading it, where supported. */
   li + li::before { content: "/"; content: "/" / ""; }
   a { color: var(--ink-soft); }
+  a:hover { color: var(--ink); }
   [aria-current] { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40ch; }
 </style>

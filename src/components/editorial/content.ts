@@ -23,11 +23,6 @@ export async function productOf(post: CollectionEntry<'posts'>): Promise<Collect
   return product;
 }
 
-/** Products in catalogue order. */
-export async function productsInOrder(): Promise<CollectionEntry<'products'>[]> {
-  return (await getCollection('products')).sort((a, b) => a.data.order - b.data.order);
-}
-
 /**
  * Short names of the content pages, for breadcrumbs. The page titles are search titles and too long for that.
  * The same names suit the header and footer links (see the B5 report).

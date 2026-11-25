@@ -4,7 +4,7 @@
 // Slots: `before` sits between the title and the body, the default slot after the body, `after` below the article.
 import { render, type CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import Breadcrumbs from './Breadcrumbs.astro';
+import Breadcrumbs from '../Breadcrumbs.astro';
 import Prose from './Prose.astro';
 import { PAGE_NAMES, type PageId } from './content.ts';
 import { isoDateTime, polishDate } from '../../lib/dates.ts';

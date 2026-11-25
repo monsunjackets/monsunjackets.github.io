@@ -2,9 +2,9 @@
 // Garment measurements of every model, for /rozmiary/ (research §5: per size, with the liner in and out). The same
 // numbers as the product pages, side by side, so a reader can see that every liner follows the jacket's size.
 // No liner-toggle hooks here: those belong to the product page.
-import { productsInOrder } from './content.ts';
+import { getProducts } from '../shop/content.ts';
 
-const products = (await productsInOrder()).filter((product) => product.data.sizes.length > 0);
+const products = (await getProducts()).filter((product) => product.data.sizes.length > 0);
 const cm = (value: number | undefined) => (value === undefined ? '–' : `${value} cm`);
 ---
 {products.length > 0 && (

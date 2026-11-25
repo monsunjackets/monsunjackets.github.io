@@ -9,12 +9,25 @@ const NBSP = '\u00a0';
 /** Every AI image carries this label on the site (research §5, ADR 0001 §3). */
 export const AI_LABEL = 'Wizualizacja AI';
 
-/** What the product means for the liner, in the catalogue and on the product page. */
-export const LINER_LABEL: Record<Liner, string> = {
-  included: 'Podpinka zimowa w zestawie',
+// Nothing is made yet, so every label is a plan, in the future tense (honest claims, wave B notes).
+const LINER_LABEL: Record<Liner, string> = {
+  included: 'Planowany zestaw z podpinką zimową',
   compatible: 'Będzie pasować każda podpinka MONSUN w tym samym rozmiarze',
-  liner: 'Do wszystkich kurtek MONSUN',
+  liner: 'Będzie pasować do wszystkich kurtek MONSUN',
 };
+
+/** What the product means for the liner: the one wording for the home page, the catalogue, product pages and /podpinka/. */
+export function linerLabel(liner: Liner): string {
+  return LINER_LABEL[liner];
+}
+
+/**
+ * Alt text for a product image shown away from its caption, such as a link preview: an AI image keeps its label
+ * there too, so no preview shows an unlabelled AI image.
+ */
+export function labelledAlt(image: { alt: string; ai: boolean }): string {
+  return image.ai ? `${image.alt} (${AI_LABEL})` : image.alt;
+}
 
 /** The two photo states of the liner toggle. */
 export const STATE_LABEL: Record<LinerState, string> = {

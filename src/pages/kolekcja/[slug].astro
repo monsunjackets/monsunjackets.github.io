@@ -8,11 +8,11 @@
 import { getImage } from 'astro:assets';
 import { getEntry, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import Breadcrumbs from '../../components/shop/Breadcrumbs.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import ProductPhoto from '../../components/shop/ProductPhoto.astro';
 import SizeTable from '../../components/shop/SizeTable.astro';
 import { builtContentPaths, contentLink, getProducts, productPath, type Product } from '../../components/shop/content.ts';
-import { formatPln, LINER_LABEL } from '../../components/shop/format.ts';
+import { formatPln, linerLabel } from '../../components/shop/format.ts';
 import { gallerySlots } from '../../components/shop/gallery.ts';
 import LinerToggle from '../../modules/liner-toggle/index.astro';
 import { site } from '../../config/site.ts';
@@ -118,7 +118,7 @@ const cta = site.form ? 'Zapisz się na listę startową' : 'Lista startowa: rus
           <span class="big">{formatPln(data.plannedPrice.pln)}</span>
           <span class="note">{data.plannedPrice.note}</span>
         </div>
-        <p class="fit">{LINER_LABEL[data.liner]}</p>
+        <p class="fit">{linerLabel(data.liner)}</p>
         <a class="btn" href="/podpinka/#lista">{cta}</a>
         <p class="note">Napiszemy do Ciebie, gdy ruszy pierwsza seria. Nie zbieramy zamówień ani płatności.</p>
       </div>
