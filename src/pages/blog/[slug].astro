@@ -1,0 +1,89 @@
+---
+// A blog post, in the order of the lecture's anatomy (slide 7; ADR 0001 §3): title with the keyword, author and
+// date, the answer first, the own photo, the body, the product link and the AI disclosure. Every element comes from
+// a required schema field, so a post that lacks one does not build.
+import { render, type CollectionEntry } from 'astro:content';
+import { getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import LaunchList from '../../modules/launch-list/index.astro';
+import Breadcrumbs from '../../components/editorial/Breadcrumbs.astro';
+import Byline from '../../components/editorial/Byline.astro';
+import OwnPhoto from '../../components/editorial/OwnPhoto.astro';
+import Prose from '../../components/editorial/Prose.astro';
+import ProductCard from '../../components/editorial/ProductCard.astro';
+import { authorOf, listedPosts, productOf } from '../../components/editorial/content.ts';
+import { readingMinutes } from '../../lib/editorial.ts';
+import { blogPostingJsonLd, breadcrumbListJsonLd } from '../../lib/schema.ts';
+
+export async function getStaticPaths() {
+  const posts = await listedPosts();
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+const { post } = Astro.props;
+const { title, description, published, updated, answer, photo, aiUse, draft } = post.data;
+const author = await authorOf(post);
+const product = await productOf(post);
+const { Content } = await render(post);
+
+const path = `/blog/${post.id}/`;
+const crumbs = [
+  { name: 'MONSUN', path: '/' },
+  { name: 'Blog', path: '/blog/' },
+  { name: title, path },
+];
+// The own photo, cropped to the 1200×630 link-preview size that Base declares for og:image.
+const preview = await getImage({ src: photo.src, width: 1200, height: 630, fit: 'cover', format: 'jpeg' });
+const jsonLd = [
+  blogPostingJsonLd({
+    headline: title,
+    description,
+    path,
+    images: [preview.src],
+    datePublished: published,
+    ...(updated ? { dateModified: updated } : {}),
+    author: { name: author.data.name, slug: author.id, sameAs: author.data.sameAs },
+  }),
+  breadcrumbListJsonLd(crumbs),
+];
+---
+<Base title={title} description={description} image={preview.src} imageAlt={photo.alt} jsonLd={jsonLd}>
+  <div class="wrap">
+    <Breadcrumbs items={crumbs} />
+    <article class="article reading">
+      {draft && (
+        <p class="draft">Szkic: widać go tylko w podglądzie. Na opublikowanej stronie pojawi się po usunięciu „draft: true”.</p>
+      )}
+      <h1>{title}</h1>
+      <Byline author={author} published={published} updated={updated} minutes={readingMinutes(post.body ?? '')} />
+      <section class="answer" aria-labelledby="w-skrocie">
+        <h2 id="w-skrocie">W skrócie</h2>
+        <p>{answer}</p>
+      </section>
+      <OwnPhoto photo={photo} />
+      <Prose><Content /></Prose>
+      <ProductCard product={product} />
+      <p class="ai-use"><strong>Jak pomogło AI.</strong> {aiUse}</p>
+    </article>
+    <div class="after">
+      <LaunchList source={`blog-${post.id}`} />
+    </div>
+  </div>
+</Base>
+
+<style>
+  .article { max-width: 760px; padding: 1.25rem 1rem 3rem; margin-inline: -1rem; display: grid; gap: 1.5rem; }
+  h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); font-stretch: 80%; font-weight: 720; line-height: 1; letter-spacing: -.01em; }
+  .answer { display: grid; gap: .4rem; padding: 1.1rem 1.25rem; border-radius: var(--r-media); background: var(--raised);
+    box-shadow: inset 0 0 0 1px var(--line); }
+  .answer h2 { font-size: var(--step-0); font-stretch: 90%; font-weight: 700; }
+  .answer p { max-width: 64ch; font-size: var(--step-1); line-height: 1.45; }
+  .ai-use { font-size: .95rem; padding: .9rem 1rem; border-left: 2px solid var(--saffron); background: var(--raised);
+    border-radius: 0 var(--r-tag) var(--r-tag) 0; }
+  .draft { justify-self: start; font-size: var(--step--1); padding: .3rem .6rem; border-radius: var(--r-tag); background: var(--sunk);
+    color: var(--ink-soft); box-shadow: inset 0 0 0 1px var(--line); }
+  .after { max-width: 760px; padding-bottom: clamp(3rem, 7vw, 6rem); }
+</style>

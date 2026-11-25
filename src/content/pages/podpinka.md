@@ -1,19 +1,36 @@
 ---
-title: Kurtka skórzana z podpinką na zamek, jak to działa
-description: Jedna kurtka, trzy sposoby noszenia. Jak działa podpinka MONSUN na zamek, do jakich temperatur i jak pasuje do wszystkich naszych kurtek.
+title: "Kurtka skórzana z podpinką na zamek: jak to będzie działać"
+description: Jedna kurtka, trzy sposoby noszenia. Jak będzie działać podpinka MONSUN na zamek, na jakie temperatury ją planujemy i do których kurtek będzie pasować.
 updated: 2026-11-25
 ways:
   - { name: Kurtka z podpinką, fromC: -10, toC: 5, months: grudzień–luty }
-  - { name: Sama kurtka, fromC: 4, toC: 18, months: marzec–maj, wrzesień–listopad }
-  - { name: Sama podpinka, fromC: 7, toC: 16, months: pod płaszcz, w chłodnym biurze, note: jako kamizelka }
+  - { name: Sama kurtka, fromC: 4, toC: 18, months: "marzec–maj, wrzesień–listopad" }
+  - { name: Sama podpinka, fromC: 7, toC: 16, months: "pod płaszcz, w chłodnym biurze", note: jako kamizelka }
 ---
 
-Podpinka będzie się wpinać na zamek biegnący wzdłuż poły, od środka kurtki. Wszystkie nasze kurtki mają mieć ten
-sam zamek, więc każda podpinka MONSUN będzie pasować do każdej kurtki w tym samym rozmiarze.
+Podpinka będzie się wpinać od środka kurtki, na zamek wzdłuż poły. Wszystkie nasze kurtki mają mieć ten sam
+zamek, więc każda podpinka MONSUN będzie pasować do każdej kurtki w tym samym rozmiarze.
 
 ## Kurtka skórzana z podpinką zimą, bez podpinki wiosną
 
-Zimą wpinasz pikowaną podpinkę i kurtka staje się ciepłą kurtką zimową. Wiosną i jesienią wypinasz ją i zostaje
-lekka skórzana kurtka. Samą podpinkę będzie można nosić jako kamizelkę.
+Zimą wepniesz pikowaną podpinkę. Wiosną i jesienią ją wypniesz i zostanie lekka skórzana kurtka. Samą podpinkę
+będzie można nosić jako kamizelkę, pod płaszcz albo w chłodnym biurze.
 
 Zakresy temperatur podajemy orientacyjnie. Sprawdzimy je na prototypie i opiszemy wynik na blogu.
+
+## Która podpinka do której kurtki
+
+Podpinka będzie w dwóch grubościach: lekka na jesień (199 zł) i zimowa (249 zł). To planowane ceny premierowe.
+Podpinkę wybierzesz w tym samym rozmiarze co kurtkę.
+
+| Model | Podpinka |
+|---|---|
+| [Ramoneska skórzana z podpinką](/kolekcja/ramoneska-skorzana-z-podpinka/) | zimowa w zestawie, będzie pasować też lekka |
+| [Kurtka skórzana, gotowa na podpinkę](/kolekcja/kurtka-skorzana-na-podpinke/) | do dokupienia, lekka albo zimowa |
+| [Kurtka jeansowa z zamkiem na podpinkę](/kolekcja/kurtka-jeansowa-na-podpinke/) | do dokupienia, lekka albo zimowa |
+| [Płaszcz skórzany z podpinką](/kolekcja/plaszcz-skorzany-z-podpinka/) | zimowa w zestawie |
+
+Płaszcz będzie dłuższy od kurtek. Czy będą do niego pasować podpinki z kurtek, sprawdzimy na prototypie.
+
+Jak zmierzyć kurtkę i dobrać rozmiar, piszemy na stronie [Rozmiary](/rozmiary/). Samą podpinkę opisujemy na
+stronie [Podpinka pikowana](/kolekcja/podpinka-pikowana/).

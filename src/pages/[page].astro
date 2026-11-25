@@ -1,0 +1,24 @@
+---
+// The plain content pages: about, warranty, size guide and privacy (ADR 0001 §2). /podpinka/ has its own route.
+// A page is generated when its Markdown file exists in src/content/pages/.
+import { getCollection, type CollectionEntry } from 'astro:content';
+import EditorialPage from '../components/editorial/EditorialPage.astro';
+import PrivacyController from '../components/editorial/PrivacyController.astro';
+import SizeTables from '../components/editorial/SizeTables.astro';
+
+export async function getStaticPaths() {
+  // Inside the function: Astro runs getStaticPaths in its own scope, with only the imports.
+  const plain = new Set(['o-nas', 'gwarancja', 'rozmiary', 'prywatnosc']);
+  const pages = await getCollection('pages', (page) => plain.has(page.id));
+  return pages.map((page) => ({ params: { page: page.id }, props: { page } }));
+}
+
+interface Props {
+  page: CollectionEntry<'pages'>;
+}
+const { page } = Astro.props;
+---
+<EditorialPage page={page}>
+  {page.id === 'prywatnosc' && <PrivacyController slot="before" />}
+  {page.id === 'rozmiary' && <SizeTables />}
+</EditorialPage>

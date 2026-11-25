@@ -1,0 +1,113 @@
+---
+// Lab demo for /lab/consent/ (dev, or a build with MONSUN_LAB=1). It runs the module with the test id G-TEST000000
+// while site.ga4Id is null, and lists what the browser stored and fetched, so the checks in README.md can be read
+// off the page. The site's policy has the GA4 origins only once ga4Id is set; README.md says how to check the test
+// id under CSP before that. For headless runs, ?lab= takes steps run in order after load: open (clicks the footer's
+// [data-consent-open], else the demo's), accept, reject, lead (sends monsun:lead 1.5 s later); e.g. ?lab=open,reject.
+import Base from '../../layouts/Base.astro';
+import { site } from '../../config/site.ts';
+import Consent from './index.astro';
+
+const TEST_ID = 'G-TEST000000';
+---
+<Base title="Lab: consent" description="Podgląd modułu consent: pasek zgody i GA4 w trybie podstawowym z testowym identyfikatorem.">
+  <div class="wrap lab reading">
+    <h1>consent</h1>
+    {site.ga4Id === null ? (
+      <p>Pasek z testowym identyfikatorem <code>{TEST_ID}</code>. Google nie dostaje nic, dopóki nie klikniesz
+        „Akceptuj”.</p>
+    ) : (
+      <p>GA4 jest już skonfigurowane, więc pasek na tej stronie pochodzi z układu strony i używa prawdziwego
+        identyfikatora. Sprawdzaj go na zwykłych stronach.</p>
+    )}
+    <p class="row">
+      <button type="button" class="btn small" data-consent-open hidden>Zmień zgodę na cookies</button>
+      <button type="button" class="btn small" data-lab-lead hidden>Wyślij zdarzenie monsun:lead</button>
+      <button type="button" class="btn small" data-lab-reset hidden>Wyczyść wybór i ciasteczka</button>
+    </p>
+    <dl class="state">
+      <dt>Zapisany wybór (monsun-consent)</dt><dd data-lab="storage">bez JS</dd>
+      <dt>Ciasteczka</dt><dd data-lab="cookies">bez JS</dd>
+      <dt>Kolejka gtag (dataLayer)</dt><dd data-lab="queue">bez JS</dd>
+      <dt>Inne domeny w Resource Timing (także zablokowane przez CSP)</dt><dd data-lab="requests">bez JS</dd>
+      <dt>Naruszenia CSP</dt><dd data-lab="csp">bez JS</dd>
+    </dl>
+  </div>
+  {site.ga4Id === null && <Consent ga4Id={TEST_ID} privacyHref="/" />}
+  <script>
+    import { expiredCookies, STORAGE_KEY } from './consent.ts';
+
+    const violations: string[] = [];
+    document.addEventListener('securitypolicyviolation', (event) => {
+      violations.push(`${event.effectiveDirective} ${event.blockedURI}`);
+    });
+
+    const set = (name: string, lines: string[]): void => {
+      const field = document.querySelector<HTMLElement>(`[data-lab="${name}"]`);
+      if (field) field.textContent = lines.length > 0 ? lines.join('\n') : 'brak';
+    };
+    const describe = (entry: unknown): string => {
+      if (entry && typeof entry === 'object' && 'length' in entry) {
+        return Array.from(entry as ArrayLike<unknown>).slice(0, 2).map((part) => (typeof part === 'string' ? part : JSON.stringify(part))).join(' ');
+      }
+      return JSON.stringify(entry) ?? String(entry);
+    };
+    const render = (): void => {
+      let stored: string | null = null;
+      try {
+        stored = localStorage.getItem(STORAGE_KEY);
+      } catch {
+        stored = '(localStorage zablokowany)';
+      }
+      set('storage', stored ? [stored] : []);
+      set('cookies', document.cookie ? document.cookie.split('; ') : []);
+      set('queue', ((window as Window & { dataLayer?: unknown[] }).dataLayer ?? []).map(describe));
+      const hosts = performance.getEntriesByType('resource')
+        .map((entry) => new URL(entry.name))
+        .filter((url) => url.origin !== location.origin)
+        .map((url) => `${url.protocol}//${url.host}${url.pathname}`);
+      set('requests', [...new Set(hosts)]);
+      set('csp', violations);
+    };
+    render();
+    setInterval(render, 500);
+
+    const lead = (): void => {
+      document.dispatchEvent(new CustomEvent('monsun:lead', { detail: { source: 'lab' } }));
+    };
+    const leadButton = document.querySelector<HTMLButtonElement>('[data-lab-lead]');
+    const resetButton = document.querySelector<HTMLButtonElement>('[data-lab-reset]');
+    leadButton?.addEventListener('click', lead);
+    resetButton?.addEventListener('click', () => {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // nothing stored
+      }
+      for (const cookie of expiredCookies('G-TEST000000', location.hostname)) document.cookie = cookie;
+      location.reload();
+    });
+    for (const button of [leadButton, resetButton]) if (button) button.hidden = false;
+
+    const steps = (new URLSearchParams(location.search).get('lab') ?? '').split(',');
+    // Drop ?lab= so the reload after a withdrawal does not press the button again.
+    if (location.search) history.replaceState(null, '', location.pathname);
+    window.addEventListener('load', () => {
+      for (const step of steps) {
+        if (step === 'open') (document.querySelector<HTMLElement>('footer [data-consent-open]') ?? document.querySelector<HTMLElement>('[data-consent-open]'))?.click();
+        if (step === 'accept' || step === 'reject') document.querySelector<HTMLButtonElement>(`[data-consent-choice="${step}"]`)?.click();
+        if (step === 'lead') setTimeout(lead, 1500);
+      }
+    });
+  </script>
+</Base>
+
+
+<style>
+  .lab { display: grid; gap: 1.5rem; padding-block: 2rem; }
+  .row { display: flex; flex-wrap: wrap; gap: .75rem; }
+  .state { display: grid; grid-template-columns: minmax(0, 16rem) minmax(0, 1fr); gap: .5rem 1.5rem; margin: 0; }
+  dt { font-weight: 600; }
+  dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--step--1); color: var(--ink-soft); }
+  @media (max-width: 640px) { .state { grid-template-columns: minmax(0, 1fr); } }
+</style>

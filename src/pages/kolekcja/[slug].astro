@@ -1,0 +1,250 @@
+---
+// Product page (research §5, product page anatomy): name and who it is for, three benefits with proof, one
+// planned launch price, AI-labelled photos, the three ways, sizes with the liner in and out, provenance as planned
+// standards, care, warranty, FAQ and one launch-list button.
+// Hooks for the liner toggle and page transitions as named in src/modules/README.md: `data-liner-scope` on the
+// product container (jackets only: the liner has no liner state), `data-liner-view` on the gallery figures,
+// `data-liner-col` on the chest columns, and `data-vt-product` on the gallery wrapper.
+import { getImage } from 'astro:assets';
+import { getEntry, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/shop/Breadcrumbs.astro';
+import ProductPhoto from '../../components/shop/ProductPhoto.astro';
+import SizeTable from '../../components/shop/SizeTable.astro';
+import { builtContentPaths, contentLink, getProducts, productPath, type Product } from '../../components/shop/content.ts';
+import { formatPln, LINER_LABEL } from '../../components/shop/format.ts';
+import { gallerySlots } from '../../components/shop/gallery.ts';
+import LinerToggle from '../../modules/liner-toggle/index.astro';
+import { site } from '../../config/site.ts';
+import { isoDateTime, polishDate } from '../../lib/dates.ts';
+import { breadcrumbListJsonLd, productJsonLd } from '../../lib/schema.ts';
+import { checkDescription, checkTitle } from '../../lib/seo.ts';
+
+export async function getStaticPaths() {
+  const products = await getProducts();
+  return products.map((product) => ({ params: { slug: product.id }, props: { product } }));
+}
+
+interface Props {
+  product: Product;
+}
+const { product } = Astro.props;
+const data = product.data;
+const path = productPath(product);
+const jacket = data.liner !== 'liner';
+
+const { Content } = await render(product);
+const hasBody = (product.body ?? '').trim() !== '';
+const built = await builtContentPaths();
+const benefits = data.benefits.map((benefit) => ({
+  ...benefit,
+  href: benefit.href === undefined ? undefined : contentLink(benefit.href, built, `${path} benefit „${benefit.title}”`),
+}));
+const warrantyHref = contentLink('/gwarancja/', built, `${path} warranty section`);
+const ways = (await getEntry('pages', 'podpinka'))?.data.ways ?? [];
+
+const slots = gallerySlots(data.images);
+const anyAi = data.images.some((image) => image.ai);
+const gallerySizes = '(max-width: 480px) calc(100vw - 2rem), (max-width: 860px) 60vw, 420px';
+
+const WAYS_INTRO = {
+  included: 'W zestawie będzie podpinka zimowa. Zimą kurtka z podpinką, wiosną i jesienią sama kurtka, a podpinka osobno jako kamizelka.',
+  compatible: 'Kurtka będzie sprzedawana bez podpinki. Podpinkę MONSUN w tym samym rozmiarze będzie można dokupić, kiedy przyjdzie zima.',
+  liner: 'Podpinkę będzie można wpiąć do każdej kurtki MONSUN w tym samym rozmiarze albo nosić osobno, jako kamizelkę.',
+} as const;
+
+const crumbs = [
+  { name: 'MONSUN', path: '/' },
+  { name: 'Kolekcja', path: '/kolekcja/' },
+  { name: data.name, path },
+];
+
+// Structured data and the link preview. Product carries no offers: nothing is for sale (ADR 0001 §7). Without a
+// photo there is no Product block, since its image would have to be something other than the product.
+const ldImages = await Promise.all(
+  data.images.map(async ({ src }) => (await getImage({ src, width: Math.min(1200, src.width), format: 'jpg' })).src),
+);
+const lead = data.images[0]?.src;
+// Base declares a 1200×630 preview and the image service never enlarges, so a smaller photo keeps the default.
+const ogImage = lead && lead.width >= 1200 && lead.height >= 630
+  ? (await getImage({ src: lead, width: 1200, height: 630, fit: 'cover', format: 'jpg' })).src
+  : undefined;
+const jsonLd = [
+  ...(ldImages.length > 0
+    ? [productJsonLd({ name: data.name, description: data.description, path, images: ldImages, brand: 'MONSUN' })]
+    : []),
+  breadcrumbListJsonLd(crumbs),
+];
+
+const cta = site.form ? 'Zapisz się na listę startową' : 'Lista startowa: ruszy wkrótce';
+---
+<Base title={checkTitle(data.title)} description={checkDescription(data.description)} image={ogImage} jsonLd={jsonLd}>
+  <article class="wrap product" data-liner-scope={jacket ? '' : undefined}>
+    <Breadcrumbs items={crumbs} />
+    <div class="pdp">
+      <div class="gallery-col">
+        <LinerToggle liner={data.liner} images={data.images} />
+        <div class="gallery" data-vt-product={product.id}>
+          {slots.length === 0 && (
+            <ProductPhoto ratio="gallery" sizes={gallerySizes} placeholder="Zdjęcia tego modelu dodamy wkrótce." />
+          )}
+          {slots.map((slot, index) => slot.kind === 'single' ? (
+            <div class="slot">
+              <ProductPhoto image={slot.image} ratio="gallery" sizes={gallerySizes} linerHooks={jacket} showState={jacket} priority={index === 0} />
+            </div>
+          ) : (
+            <div class="slot liner-pair">
+              <ProductPhoto image={slot.in} ratio="gallery" sizes={gallerySizes} linerHooks showState priority={index === 0} />
+              <ProductPhoto image={slot.out} ratio="gallery" sizes={gallerySizes} linerHooks showState priority={index === 0} />
+            </div>
+          ))}
+        </div>
+        {anyAi && <p class="note">Zdjęcia to wizualizacje AI. Zdjęcia prawdziwego produktu dodamy po uszyciu prototypu.</p>}
+      </div>
+
+      <div class="buybox reading">
+        <h1>{data.name}</h1>
+        <p class="lede">{data.forWhom}</p>
+        <ul class="benefits">
+          {benefits.map((benefit) => (
+            <li>
+              <strong>{benefit.title}</strong>
+              <span>{benefit.proof}{benefit.href && <> <a href={benefit.href}>Szczegóły<span class="visually-hidden">: {benefit.title}</span></a></>}</span>
+            </li>
+          ))}
+        </ul>
+        <div class="pricebox">
+          <span class="note">Planowana cena premierowa</span>
+          <span class="big">{formatPln(data.plannedPrice.pln)}</span>
+          <span class="note">{data.plannedPrice.note}</span>
+        </div>
+        <p class="fit">{LINER_LABEL[data.liner]}</p>
+        <a class="btn" href="/podpinka/#lista">{cta}</a>
+        <p class="note">Napiszemy do Ciebie, gdy ruszy pierwsza seria. Nie zbieramy zamówień ani płatności.</p>
+      </div>
+    </div>
+
+    <div class="sections">
+      {hasBody && (
+        <section class="reading panel prose" aria-labelledby="opis">
+          <h2 id="opis">O modelu</h2>
+          <Content />
+        </section>
+      )}
+
+      <section class="reading panel" aria-labelledby="sposoby">
+        <h2 id="sposoby">Trzy sposoby noszenia</h2>
+        <p>{WAYS_INTRO[data.liner]}</p>
+        {ways.length > 0 && (
+          <ul class="ways">
+            {ways.map((way) => (
+              <li><strong>{way.name}</strong><span>{way.months}{way.note && `, ${way.note}`}</span></li>
+            ))}
+          </ul>
+        )}
+        <p><a href="/podpinka/">Jak działa podpinka i do jakich temperatur</a></p>
+      </section>
+
+      <section class="reading panel" aria-labelledby="rozmiary">
+        <h2 id="rozmiary">Rozmiary</h2>
+        <SizeTable sizes={data.sizes} liner={data.liner} sizesAreExample={data.sizesAreExample} caption={data.name} linerHooks />
+        <p><a href="/rozmiary/">Jak dobrać rozmiar</a></p>
+      </section>
+
+      {data.provenance.length > 0 && (
+        <section class="reading panel" aria-labelledby="pochodzenie">
+          <h2 id="pochodzenie">Materiały i pochodzenie</h2>
+          <p class="note">Piszemy o planach: kurtek MONSUN jeszcze nie szyjemy.</p>
+          <dl class="facts">
+            {data.provenance.map((fact) => <div><dt>{fact.label}</dt><dd>{fact.text}</dd></div>)}
+          </dl>
+        </section>
+      )}
+
+      <section class="reading panel" aria-labelledby="pielegnacja">
+        <h2 id="pielegnacja">Pielęgnacja</h2>
+        <ul class="care">{data.care.map((line) => <li>{line}</li>)}</ul>
+      </section>
+
+      <section class="reading panel" aria-labelledby="gwarancja">
+        <h2 id="gwarancja">Gwarancja</h2>
+        <p>Planujemy 3 lata gwarancji na szwy i zamki. Niezależnie od niej sprzedawca odpowiada za niezgodność towaru z umową przez 2 lata.</p>
+        {warrantyHref && <p><a href={warrantyHref}>Planowane warunki gwarancji</a></p>}
+      </section>
+
+      {data.faq.length > 0 && (
+        <section class="reading panel" aria-labelledby="pytania">
+          <h2 id="pytania">Pytania</h2>
+          <div>
+            {data.faq.map((item) => (
+              <details><summary>{item.q}</summary><p>{item.a}</p></details>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <p class="note">Aktualizacja: <time datetime={isoDateTime(data.updated)}>{polishDate(data.updated)}</time></p>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .product { padding-bottom: clamp(3rem, 7vw, 5rem); }
+  .pdp {
+    display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(1.5rem, 4vw, 4rem);
+    align-items: start; padding-block: 1.5rem 3rem;
+  }
+  .gallery-col { display: grid; gap: .75rem; min-width: 0; }
+  .gallery { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: .75rem; align-items: start; }
+  .gallery > :global(.photo-slot) { grid-column: 1 / -1; aspect-ratio: 3 / 2; }
+  .slot { min-width: 0; }
+  /* A pair shares its slot: both photos side by side, or only one when the liner toggle hides the other. */
+  .liner-pair { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: .5rem; }
+
+  /* Reading surfaces: the panel's padding sits in the page gutter, so its text lines up with the grid. */
+  .buybox, .panel { padding: clamp(1rem, 2.5vw, 1.5rem) 1rem; margin-inline: -1rem; border-radius: var(--r-media); }
+  .buybox { position: sticky; top: 5rem; display: grid; gap: 1.25rem; }
+  .buybox h1 { font-size: var(--step-4); font-stretch: 80%; font-weight: 720; line-height: 1; }
+  .benefits { list-style: none; margin: 0; padding: 0; display: grid; gap: .9rem; }
+  .benefits li { display: grid; gap: .15rem; padding-left: 1rem; border-left: 2px solid var(--petrol); }
+  .benefits strong { font-weight: 650; }
+  .benefits span { color: var(--ink-soft); font-size: .95rem; }
+  .pricebox {
+    display: grid; gap: .35rem; padding: 1rem 1.1rem; border-radius: var(--r-media);
+    background: var(--raised); box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .big { font-size: var(--step-3); font-weight: 700; font-stretch: 85%; font-variant-numeric: tabular-nums; }
+  .fit { font-size: var(--step--1); color: var(--petrol); }
+  .buybox .btn { justify-self: start; }
+
+  .sections { display: grid; gap: 1.5rem; max-width: 820px; }
+  .panel { display: grid; gap: .9rem; align-content: start; min-width: 0; }
+  .panel h2 { font-size: var(--step-3); font-stretch: 85%; font-weight: 700; line-height: 1.05; }
+  .panel > p, .care, .facts { max-width: 64ch; }
+  .prose :global(:is(p, ul, ol)) { max-width: 64ch; }
+  .prose :global(h2) { font-size: var(--step-2); font-stretch: 88%; font-weight: 700; line-height: 1.1; }
+  .prose :global(h3) { font-size: var(--step-1); font-weight: 650; }
+  .prose :global(:is(h2, h3):not(:first-child)) { margin-top: .75rem; }
+  .ways { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; border-top: 1px solid var(--line); }
+  .ways li { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: 1rem; padding-block: .5rem; border-bottom: 1px solid var(--line); }
+  .ways span { color: var(--ink-soft); }
+  .facts { display: grid; margin: 0; border-top: 1px solid var(--line); }
+  .facts div { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 1rem; padding-block: .8rem; border-bottom: 1px solid var(--line); }
+  .facts dt { color: var(--cognac); font-weight: 600; }
+  .facts dd { margin: 0; }
+  .care { margin: 0; padding-left: 1.2rem; display: grid; gap: .4rem; }
+  details { border-bottom: 1px solid var(--line); padding-block: .9rem; }
+  details:first-of-type { border-top: 1px solid var(--line); }
+  summary { cursor: pointer; font-weight: 600; }
+  details p { margin-top: .6rem; color: var(--ink-soft); max-width: 64ch; }
+
+  @media (max-width: 860px) {
+    .pdp { grid-template-columns: minmax(0, 1fr); }
+    .buybox { position: static; }
+  }
+  @media (max-width: 480px) {
+    .gallery { grid-template-columns: minmax(0, 1fr); }
+    .buybox, .panel { border-radius: 0; }
+    .ways li, .facts div { grid-template-columns: minmax(0, 1fr); gap: .2rem; }
+  }
+</style>

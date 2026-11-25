@@ -1,0 +1,81 @@
+---
+// Author page (ADR 0001 §2, §7): the target of the Person url in each post's BlogPosting. Shows only what the
+// author agreed to publish (display name, role, bio, optional photo and profiles) and their listed posts.
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Avatar from '../../components/editorial/Avatar.astro';
+import Breadcrumbs from '../../components/editorial/Breadcrumbs.astro';
+import PostTeaser from '../../components/editorial/PostTeaser.astro';
+import { listedPosts } from '../../components/editorial/content.ts';
+import { shortDescription } from '../../lib/editorial.ts';
+import { breadcrumbListJsonLd, personJsonLd } from '../../lib/schema.ts';
+
+export async function getStaticPaths() {
+  const authors = await getCollection('authors');
+  return authors.map((author) => ({ params: { slug: author.id }, props: { author } }));
+}
+
+interface Props {
+  author: CollectionEntry<'authors'>;
+}
+const { author } = Astro.props;
+const { name, role, bio, sameAs } = author.data;
+const posts = (await listedPosts()).filter((post) => post.data.author.id === author.id);
+
+const path = `/autorzy/${author.id}/`;
+const crumbs = [
+  { name: 'MONSUN', path: '/' },
+  { name: 'Blog', path: '/blog/' },
+  { name, path },
+];
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    mainEntity: personJsonLd({ name, slug: author.id, sameAs }),
+  },
+  breadcrumbListJsonLd(crumbs),
+];
+---
+<Base title={`${name}, autor bloga`} description={shortDescription(`${name}, autor bloga MONSUN. ${bio}`)} jsonLd={jsonLd}>
+  <div class="wrap">
+    <Breadcrumbs items={crumbs} />
+    <section class="profile reading">
+      <Avatar author={author} size={96} />
+      <div class="about">
+        <h1>{name}</h1>
+        <p class="role">{role}</p>
+        <p>{bio}</p>
+        {sameAs.length > 0 && (
+          <ul class="profiles" aria-label="Profile">
+            {sameAs.map((url) => <li><a href={url} rel="me">{new URL(url).hostname.replace(/^www\./, '')}</a></li>)}
+          </ul>
+        )}
+      </div>
+    </section>
+
+    <section class="posts" aria-labelledby="wpisy">
+      <h2 id="wpisy">Wpisy</h2>
+      {posts.length > 0 ? (
+        <div class="list">{posts.map((post) => <PostTeaser post={post} level={3} />)}</div>
+      ) : (
+        <p class="empty">Pierwszy wpis pojawi się wkrótce. <a href="/blog/">Zobacz blog</a></p>
+      )}
+    </section>
+  </div>
+</Base>
+
+<style>
+  .profile { display: flex; gap: 1.5rem; align-items: flex-start; max-width: 760px; padding: 1.25rem 1rem 2rem; margin-inline: -1rem; }
+  .about { display: grid; gap: .6rem; min-width: 0; }
+  h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-stretch: 80%; font-weight: 720; line-height: 1; }
+  .role { color: var(--cognac); font-weight: 600; }
+  .about > p:not(.role) { max-width: 64ch; }
+  .profiles { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem 1rem; }
+  .posts { padding-bottom: clamp(3rem, 7vw, 6rem); }
+  .posts h2 { font-size: var(--step-3); font-stretch: 85%; font-weight: 700; margin-bottom: 1rem; }
+  .list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1rem, 3vw, 2.5rem); }
+  .empty { color: var(--ink-soft); }
+  @media (max-width: 860px) { .list { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 480px) { .profile { flex-direction: column; } }
+</style>

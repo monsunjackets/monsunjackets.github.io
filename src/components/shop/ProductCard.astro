@@ -1,0 +1,48 @@
+---
+// A product in the catalogue: photo, name, planned price and what it means for the liner. The whole card is
+// clickable through the name's link, so a screen reader hears one short link per product.
+import { formatPln, LINER_LABEL } from './format.ts';
+import { cardImage } from './gallery.ts';
+import { productPath, type Product } from './content.ts';
+import ProductPhoto from './ProductPhoto.astro';
+
+export interface Props {
+  product: Product;
+  /** The card is in the first screen: load its photo at once. */
+  priority?: boolean;
+}
+const { product, priority = false } = Astro.props;
+const { name, plannedPrice, forWhom, liner, images } = product.data;
+---
+<article class="card">
+  <ProductPhoto
+    image={cardImage(images)}
+    ratio="card"
+    sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1000px) 46vw, 390px"
+    vtProduct={product.id}
+    priority={priority}
+  />
+  <div class="body">
+    <h2><a href={productPath(product)}>{name}</a></h2>
+    <p class="price">{formatPln(plannedPrice.pln)}</p>
+    <p class="price-note">{plannedPrice.note}</p>
+    <p class="for">{forWhom}</p>
+    <p class="fit">{LINER_LABEL[liner]}</p>
+  </div>
+</article>
+
+<style>
+  .card { position: relative; display: grid; gap: 1rem; align-content: start; }
+  .body { display: grid; gap: .35rem; }
+  h2 { font-size: var(--step-2); font-stretch: 85%; font-weight: 700; line-height: 1.05; }
+  h2 a { color: var(--ink); text-decoration: none; }
+  /* Stretch the name's link over the card. */
+  h2 a::after { content: ""; position: absolute; inset: 0; border-radius: var(--r-media); }
+  h2 a:focus-visible { outline: none; }
+  h2 a:focus-visible::after { outline: 2px solid var(--focus); outline-offset: 4px; }
+  .card:hover h2 a { color: var(--petrol); text-decoration: underline; }
+  .price { font-variant-numeric: tabular-nums; font-weight: 650; font-size: var(--step-1); }
+  .price-note { color: var(--ink-soft); font-size: var(--step--1); }
+  .for { color: var(--ink-soft); font-size: .95rem; }
+  .fit { font-size: var(--step--1); color: var(--petrol); }
+</style>

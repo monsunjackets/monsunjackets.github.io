@@ -1,23 +1,23 @@
 ---
 name: Ramoneska skórzana z podpinką
 title: Ramoneska skórzana z podpinką na zamek
-description: Czarna ramoneska z pikowaną podpinką na zamek, jedna kurtka od styczniowego mrozu po kwietniowy deszcz. Planowana cena premierowa 1 099 zł.
+description: Czarna ramoneska z pikowaną podpinką na zamek. Zimą z podpinką, wiosną bez niej. Planowana cena premierowa 1 099 zł z podpinką zimową.
 order: 1
 forWhom: Dla osób, które chcą jednej skórzanej kurtki od styczniowego mrozu po kwietniowy deszcz.
 liner: included
 keyword: ramoneska skórzana
 plannedPrice:
   pln: 1099
-  note: Kurtka z podpinką zimową. Sama kurtka 899 zł, podpinka osobno 249 zł.
+  note: Z podpinką zimową. Sama kurtka 899 zł, podpinka zimowa osobno 249 zł.
 benefits:
   - title: Podpinka na zamek
-    proof: Pikowana podpinka będzie się wpinać od środka wzdłuż poły.
+    proof: Pikowana podpinka będzie się wpinać od środka, na zamek wzdłuż poły. Wiosną ją wypniesz.
     href: /podpinka/
-  - title: Jeden zamek we wszystkich modelach
-    proof: Każda podpinka MONSUN ma pasować do każdej kurtki w tym samym rozmiarze.
+  - title: Ten sam zamek we wszystkich kurtkach
+    proof: Każda podpinka MONSUN ma pasować do każdej naszej kurtki w tym samym rozmiarze.
     href: /rozmiary/
-  - title: 3 lata gwarancji na szwy i zamki
-    proof: Planujemy rok dłużej niż ustawowa odpowiedzialność sprzedawcy za niezgodność towaru z umową.
+  - title: Planowane 3 lata gwarancji na szwy i zamki
+    proof: Rok dłużej niż 2 lata ustawowej odpowiedzialności sprzedawcy za niezgodność towaru z umową.
     href: /gwarancja/
 images:
   - src: ../../assets/products/ramoneska-skorzana-z-podpinka/ramoneska__liner-half.jpg
@@ -41,10 +41,16 @@ faq:
     a: Tak planujemy podpinkę zimową, ale nie mamy jeszcze prototypu. Wynik testu opiszemy na blogu, zanim podamy to jako pewnik.
   - q: Czy podpinkę da się nosić osobno?
     a: Tak, planujemy ją tak, żeby można ją było nosić jako kamizelkę pod płaszcz albo w chłodnym biurze.
+  - q: Czy wpinanie podpinki będzie kłopotliwe?
+    a: Planujemy, że wystarczy zapiąć zamek, jak przy zapinaniu kurtki. Jak to wygląda w praktyce, pokażemy, gdy uszyjemy prototyp.
+  - q: Co obejmie gwarancja?
+    a: Planujemy 3 lata gwarancji na szwy i zamki. Naprawy chcemy zlecać w warsztacie w Polsce. Szczegóły są na stronie o gwarancji i zwrotach.
 provenance:
   - label: Skóra
     text: Czarna skóra z garbarni z certyfikatem Leather Working Group. To nasz wymóg dla dostawcy, nie gotowy fakt.
   - label: Szycie
     text: Indie, zakład, który pokażemy z nazwy, gdy go wybierzemy.
+  - label: Zamki
+    text: Planujemy metalowe i wymienne, jeden system we wszystkich modelach.
 updated: 2026-11-25
 ---

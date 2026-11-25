@@ -1,0 +1,56 @@
+---
+// The ways to wear the jacket on a temperature axis, as on the home page („Jedna kurtka, trzy sposoby noszenia”),
+// drawn from a page's `ways`. No JS and no style attributes: bar positions come from ways-scale.css. The ways are
+// styled by their order on /podpinka/: jacket with liner (quilted petrol), jacket alone (ink), liner alone
+// (outline). Each bar carries its range as text for screen readers.
+import './ways-scale.css';
+import { checkWayRange, SCALE_MAX_C, SCALE_MIN_C } from '../../lib/editorial.ts';
+
+export interface Props {
+  ways: { name: string; fromC: number; toC: number; months: string; note?: string | undefined }[];
+}
+const { ways } = Astro.props;
+ways.forEach(checkWayRange);
+
+const degrees = (c: number) => (c < 0 ? `−${-c}` : c > 0 ? `+${c}` : '0');
+const ticks: number[] = [];
+for (let c = SCALE_MIN_C; c < SCALE_MAX_C; c += 5) ticks.push(c);
+---
+<div class="scale">
+  {ways.map((way, i) => (
+    <>
+      <span class="way-name">{way.name}{way.note && <small>{way.note}</small>}</span>
+      <div class="track">
+        <i class="ways-bar" data-from={way.fromC} data-to={way.toC} data-way={i}>
+          {way.months}<span class="visually-hidden">, orientacyjnie od {degrees(way.fromC)} do {degrees(way.toC)}°C</span>
+        </i>
+      </div>
+    </>
+  ))}
+  <div class="axis" aria-hidden="true">{ticks.map((c) => <span>{degrees(c)}°C</span>)}</div>
+</div>
+
+<style>
+  .scale { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: .25rem 1rem; align-items: center; }
+  .way-name { display: grid; font-weight: 650; font-stretch: 90%; line-height: 1.2; }
+  .way-name small { font-weight: 400; font-stretch: 100%; font-size: var(--step--1); color: var(--ink-soft); }
+  .track { display: grid; grid-template-columns: repeat(30, 1fr); min-height: 2.4rem; }
+  .ways-bar { display: flex; align-items: center; padding-inline: .75rem; border-radius: var(--r-tag); font-style: normal;
+    font-size: var(--step--1); white-space: normal; padding-block: .3rem; line-height: 1.25; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--petrol); }
+  .ways-bar[data-way="0"] { background-color: var(--petrol); color: var(--canvas); box-shadow: none;
+    background-image:
+      repeating-linear-gradient(45deg, transparent 0 9px, color-mix(in srgb, var(--canvas) 14%, transparent) 9px 10px),
+      repeating-linear-gradient(-45deg, transparent 0 9px, color-mix(in srgb, var(--canvas) 14%, transparent) 9px 10px); }
+  .ways-bar[data-way="1"] { background-color: var(--ink); color: var(--canvas); box-shadow: none; }
+  .axis { grid-column: 2; display: grid; grid-template-columns: repeat(30, 1fr); font-size: var(--step--1); color: var(--ink-soft);
+    font-variant-numeric: tabular-nums; border-top: 1px solid var(--line); padding-top: .3rem; }
+  .axis span { grid-column: span 5; }
+  @media (max-width: 860px) {
+    .scale { grid-template-columns: minmax(0, 1fr); }
+    .axis { grid-column: 1; }
+  }
+  @media (max-width: 480px) {
+    .track { height: auto; }
+    .ways-bar { padding: .4rem; white-space: normal; min-height: 2.4rem; }
+  }
+</style>

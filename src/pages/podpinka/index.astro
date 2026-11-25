@@ -1,0 +1,33 @@
+---
+// How the liner works (ADR 0001 §2): one jacket, three ways, which models take the liner, and the launch list.
+// This is the poster and flyer QR target, so the launch list (#lista) is on the page and linked from the top.
+import { getEntry } from 'astro:content';
+import EditorialPage from '../../components/editorial/EditorialPage.astro';
+import LinerFit from '../../components/editorial/LinerFit.astro';
+import WaysScale from '../../components/editorial/WaysScale.astro';
+import LaunchList from '../../modules/launch-list/index.astro';
+
+const page = await getEntry('pages', 'podpinka');
+if (!page) throw new Error('src/content/pages/podpinka.md is missing; /podpinka/ is the QR target and must build');
+const { ways = [] } = page.data;
+---
+<EditorialPage page={page}>
+  <Fragment slot="before">
+    <p><a class="btn" href="#lista">Przejdź do listy startowej</a></p>
+    {ways.length > 0 && (
+      <section class="ways" aria-labelledby="sposoby">
+        <h2 id="sposoby">Jedna kurtka, trzy sposoby noszenia</h2>
+        <WaysScale ways={ways} />
+        <p class="note">Zakresy orientacyjne. Sprawdzimy je na prototypie i opiszemy wynik na blogu.</p>
+      </section>
+    )}
+  </Fragment>
+  <LinerFit />
+  <div slot="after" class="list"><LaunchList source="podpinka" /></div>
+</EditorialPage>
+
+<style>
+  .ways { display: grid; gap: 1rem; }
+  .ways h2 { font-size: var(--step-3); font-stretch: 85%; font-weight: 700; line-height: 1.08; }
+  .list { max-width: 760px; margin-bottom: clamp(3rem, 7vw, 6rem); }
+</style>

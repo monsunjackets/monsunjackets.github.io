@@ -1,0 +1,138 @@
+---
+// The launch-list section for explicit settings. Pages import index.astro, which reads src/config/site.ts; the
+// lab demos import this file directly to show every state with made-up settings.
+import type { FormConfig } from '../../config/site.ts';
+import { formLink, launchListState } from './form-config.ts';
+import { checkSource } from './source.ts';
+
+export interface Props {
+  /** Where the sign-up happened, sent as the `zrodlo` field, e.g. 'home' or 'podpinka'. */
+  source: string;
+  class?: string;
+  form: FormConfig | null;
+  contactEmail: string | null;
+  /** YYYY-MM-DD: the date the list is deleted by. */
+  deleteBy: string;
+}
+const { source, class: className, form, contactEmail, deleteBy } = Astro.props;
+checkSource(source);
+const state = launchListState({ form, contactEmail, deleteBy });
+---
+<section id="lista" class:list={['launch-list', 'reading', className]} aria-labelledby="lista-tytul">
+  {state.kind === 'soon' ? (
+    <>
+      <h2 id="lista-tytul">Lista startowa ruszy wkrótce</h2>
+      <p class="lede">Zapiszesz się tu adresem e-mail i napiszemy do Ciebie raz: gdy ruszy pierwsza seria albo gdy projekt się zakończy. Nie zbieramy zamówień ani płatności.</p>
+    </>
+  ) : (
+    <>
+      <h2 id="lista-tytul">Lista startowa pierwszej serii</h2>
+      <p class="lede">Lista pokaże nam, ile osób czeka na pierwszą serię, a Ty dowiesz się o niej wśród pierwszych. Napiszemy raz: gdy MONSUN ruszy albo gdy projekt się zakończy. Nie zbieramy zamówień ani płatności.</p>
+      <div class="body">
+        {state.kind === 'post' ? (
+          <form class="signup" method="post" action={state.action} data-launch-list={source}>
+            <div class="field">
+              <label for="lista-email">Adres e-mail</label>
+              <input id="lista-email" name={state.entries.email} type="email" required autocomplete="email" spellcheck="false" autocapitalize="off">
+            </div>
+            <div class="consent">
+              <input id="lista-zgoda" name={state.entries.consent} type="checkbox" value={state.consentValue} required>
+              <label for="lista-zgoda">{state.consentValue}</label>
+            </div>
+            <input type="hidden" name={state.entries.source} value={source} data-launch-list-source>
+            <button class="btn" type="submit" aria-describedby="lista-dalej">Zapisz mnie na listę</button>
+            <p class="note" id="lista-dalej">Wysłanie przeniesie Cię do Formularzy Google, które potwierdzą zapis.</p>
+          </form>
+        ) : (
+          <div class="signup">
+            <a class="btn" href={formLink(state.viewUrl, state.entries.source, source)} data-launch-list-link={source} data-entry={state.entries.source} aria-describedby="lista-dalej">Zapisz się w Formularzu Google</a>
+            <p class="note" id="lista-dalej">Formularz otworzy się na stronie Google. Tam podasz adres, zaznaczysz zgodę i zobaczysz potwierdzenie zapisu.</p>
+          </div>
+        )}
+        <div class="privacy">
+          <h3>Co zrobimy z Twoim adresem</h3>
+          <dl>
+            <div><dt>Administrator</dt><dd>Zespół studenckiego projektu MONSUN (PWr), <a href={`mailto:${state.contactEmail}`}>{state.contactEmail}</a></dd></div>
+            <div><dt>Cel</dt><dd>Jeden e-mail: gdy MONSUN ruszy albo gdy projekt się zakończy.</dd></div>
+            <div><dt>Podstawa</dt><dd>Twoja zgoda (art. 6 ust. 1 lit. a RODO). Wycofasz ją, pisząc na adres zespołu.</dd></div>
+            <div><dt>Odbiorca</dt><dd>Google Ireland Ltd, dostawca Formularzy i Arkuszy Google. Dane mogą trafić do USA na podstawie EU-US Data Privacy Framework.</dd></div>
+            <div><dt>Usunięcie</dt><dd>Listę usuniemy do <time datetime={state.deleteBy.iso}>{state.deleteBy.text}</time>.</dd></div>
+          </dl>
+          <p><a href="/prywatnosc/">Polityka prywatności</a>: pełna informacja i Twoje prawa.</p>
+        </div>
+      </div>
+      <script>
+        import { sourceWithUtm } from './source.ts';
+
+        // A second submit right after the first (a double click while Google's page loads) would add a second
+        // row to the Sheet, which is where sign-ups are counted.
+        const REPEAT_MS = 5000;
+
+        for (const form of document.querySelectorAll<HTMLFormElement>('form[data-launch-list]')) {
+          const source = form.dataset.launchList ?? '';
+          const field = form.querySelector<HTMLInputElement>('input[data-launch-list-source]');
+          if (field) field.value = sourceWithUtm(source, location.search);
+          let sentAt = -Infinity;
+          form.addEventListener('submit', (event) => {
+            if (event.timeStamp - sentAt < REPEAT_MS) {
+              event.preventDefault();
+              return;
+            }
+            sentAt = event.timeStamp;
+            // The browser goes on to post the form; listeners run synchronously and their errors do not stop it.
+            document.dispatchEvent(new CustomEvent('monsun:lead', { detail: { source } }));
+          });
+          // Back from Google's page through the back/forward cache: a new submit is a new sign-up.
+          addEventListener('pageshow', (event) => {
+            if (event.persisted) sentAt = -Infinity;
+          });
+        }
+
+        for (const link of document.querySelectorAll<HTMLAnchorElement>('a[data-launch-list-link]')) {
+          const url = new URL(link.href);
+          url.searchParams.set(link.dataset.entry ?? '', sourceWithUtm(link.dataset.launchListLink ?? '', location.search));
+          link.href = url.href;
+        }
+      </script>
+    </>
+  )}
+</section>
+
+<style>
+  .launch-list { display: grid; gap: .8rem; padding-block: 2rem; border-top: 2px solid var(--saffron); }
+  h2 { font-size: var(--step-4); font-stretch: 85%; font-weight: 700; line-height: 1.02; }
+  .lede { max-width: 60ch; }
+
+  .body {
+    display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(1.5rem, 4vw, 4rem);
+    align-items: start; margin-top: 1rem;
+  }
+  .signup { display: grid; gap: 1.1rem; max-width: 34rem; }
+  .field { display: grid; gap: .35rem; }
+  .field label { font-weight: 600; }
+  input[type="email"] {
+    width: 100%; padding: .7rem .9rem; font: inherit; color: var(--ink); background: var(--raised);
+    border: 1.5px solid var(--ink-soft); border-radius: var(--r-tag);
+  }
+  input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .consent { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .65rem; align-items: start; }
+  .consent input { width: 1.25rem; height: 1.25rem; margin: .2rem 0 0; accent-color: var(--petrol); }
+  .signup .btn { justify-self: start; }
+
+  .privacy { display: grid; gap: .7rem; font-size: .95rem; }
+  .privacy h3 { font-size: var(--step-1); font-weight: 650; font-stretch: 90%; }
+  .privacy dl { display: grid; margin: 0; border-top: 1px solid var(--line); }
+  .privacy dl div {
+    display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: .75rem; padding-block: .5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .privacy dt { color: var(--cognac); font-weight: 600; }
+  .privacy dd { margin: 0; overflow-wrap: anywhere; }
+
+  @media (max-width: 860px) {
+    .body { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .privacy dl div { grid-template-columns: minmax(0, 1fr); gap: .1rem; }
+  }
+</style>

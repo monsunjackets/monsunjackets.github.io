@@ -1,0 +1,41 @@
+---
+// A post in a list (blog index, author page). The whole card follows the title link; the author link sits above it.
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import { authorOf } from './content.ts';
+import { isoDateTime, polishDate } from '../../lib/dates.ts';
+
+export interface Props {
+  post: CollectionEntry<'posts'>;
+  /** Heading level of the title in the page outline. */
+  level?: 2 | 3;
+}
+const { post, level = 2 } = Astro.props;
+const { title, description, published, photo, draft } = post.data;
+const author = await authorOf(post);
+const Heading = level === 2 ? 'h2' : 'h3';
+---
+<article class="teaser">
+  <Image src={photo.src} alt="" widths={[400, 800]} sizes="(min-width: 860px) 380px, calc(100vw - 2rem)" />
+  {draft && <p class="draft">Szkic, niewidoczny na opublikowanej stronie</p>}
+  <Heading class="title"><a href={`/blog/${post.id}/`}>{title}</a></Heading>
+  <p class="meta">
+    <a href={`/autorzy/${author.id}/`}>{author.data.name}</a>
+    <time datetime={isoDateTime(published)}>{polishDate(published)}</time>
+  </p>
+  <p class="description">{description}</p>
+</article>
+
+<style>
+  .teaser { position: relative; display: grid; gap: .6rem; align-content: start; }
+  .teaser :global(img) { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--r-media); margin-bottom: .3rem; }
+  .title { font-size: var(--step-2); font-stretch: 88%; font-weight: 650; line-height: 1.1; }
+  .title a { color: inherit; text-decoration: none; }
+  .title a::after { content: ""; position: absolute; inset: 0; }
+  .teaser:hover .title a { color: var(--petrol); }
+  .meta { display: flex; flex-wrap: wrap; gap: .2rem .75rem; font-size: var(--step--1); color: var(--ink-soft); }
+  .meta a { position: relative; z-index: 1; color: var(--ink); font-weight: 600; }
+  .description { color: var(--ink-soft); }
+  .draft { justify-self: start; font-size: var(--step--1); padding: .1rem .45rem; border-radius: var(--r-tag);
+    background: var(--sunk); color: var(--ink-soft); box-shadow: inset 0 0 0 1px var(--line); }
+</style>

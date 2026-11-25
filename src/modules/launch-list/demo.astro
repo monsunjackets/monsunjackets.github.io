@@ -1,0 +1,50 @@
+---
+// Lab demo for /lab/launch-list/ (dev, or a build with MONSUN_LAB=1): the form in mode 'post' with made-up
+// settings. Other states: /lab/launch-list/link/ and /lab/launch-list/soon/.
+import Base from '../../layouts/Base.astro';
+import LaunchListView from './LaunchListView.astro';
+import { labContact, labDeleteBy, labForm } from './lab-settings.ts';
+---
+<Base title="Lab: launch-list" description="Podgląd modułu launch-list: formularz listy startowej na zmyślonych ustawieniach.">
+  <div class="wrap lab">
+    <h1>launch-list</h1>
+    <div class="reading panel">
+      <p>Formularz na zmyślonych ustawieniach. Inne stany: <a href="/lab/launch-list/link/">link do Formularza</a>, <a href="/lab/launch-list/soon/">„ruszy wkrótce”</a>.</p>
+      <p>Kampania w adresie: <a href="/lab/launch-list/?utm_source=poster&amp;utm_medium=qr">plakat (poster, qr)</a>, <a href="/lab/launch-list/?utm_source=jan%40example.com&amp;utm_medium=Social">adres e-mail w utm_source (odrzucony)</a>, <a href="/lab/launch-list/">bez kampanii</a>.</p>
+      <p><label><input type="checkbox" id="lab-hold" checked> Zatrzymaj wysyłkę i pokaż, co poszłoby do Google</label></p>
+      <p class="note">Bez tego pola formularz naprawdę wyśle dane pod nieistniejący adres Google (strona 404). Wpisuj adresy testowe, np. test@example.com.</p>
+      <pre id="lab-out">Nic jeszcze nie wysłano.</pre>
+    </div>
+    <LaunchListView source="lab" form={labForm} contactEmail={labContact} deleteBy={labDeleteBy} />
+  </div>
+</Base>
+
+<script>
+  // Demo only: shows the monsun:lead event and the fields the form would post, and holds the submit.
+  const hold = document.querySelector<HTMLInputElement>('#lab-hold');
+  const out = document.querySelector<HTMLPreElement>('#lab-out');
+  let lead = 'brak';
+  document.addEventListener('monsun:lead', (event) => {
+    lead = JSON.stringify((event as CustomEvent<unknown>).detail);
+  });
+  // Runs after the module's own listener on the form, because the event bubbles from the form to the document.
+  document.addEventListener('submit', (event) => {
+    if (!out || !(event.target instanceof HTMLFormElement)) return;
+    const form = event.target;
+    if (event.defaultPrevented) {
+      out.textContent = 'Drugie wysłanie w ciągu 5 s: moduł je zatrzymał (bez zdarzenia monsun:lead).';
+      return;
+    }
+    if (!hold?.checked) return;
+    event.preventDefault();
+    const fields = [...new FormData(form)].map(([name, value]) => `  ${name} = ${String(value)}`);
+    out.textContent = [`POST ${form.action}`, ...fields, '', `monsun:lead detail: ${lead}`].join('\n');
+    lead = 'brak';
+  });
+</script>
+
+<style>
+  .lab { display: grid; gap: 2rem; padding-block: 2rem; }
+  .panel { display: grid; gap: .6rem; padding: 1rem; border: 1px dashed var(--line); border-radius: var(--r-tag); }
+  pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--step--1); }
+</style>

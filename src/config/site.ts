@@ -1,4 +1,5 @@
-// Site-wide settings (plan 0002, M5a). Values that are not set yet are null, and every component that reads
+// Site-wide settings (plan 0002, M5a). Keep this file free of imports: src/lib/csp.ts imports it, and the CI
+// verify job runs that with plain Node and no node_modules. Values that are not set yet are null, and every component that reads
 // them renders a safe "not yet" state: no consent bar and no GA4 without ga4Id, no form without form.
 
 export interface FormConfig {

@@ -3,19 +3,28 @@
 import Base from '../layouts/Base.astro';
 import HeroTemp from '../modules/hero-temp/index.astro';
 import LaunchList from '../modules/launch-list/index.astro';
+import { site } from '../config/site.ts';
+import { organizationJsonLd } from '../lib/schema.ts';
+
+const organization = organizationJsonLd({
+  name: 'MONSUN',
+  logo: '/logo-512.png',
+  email: site.contactEmail ?? undefined,
+  sameAs: site.social.map((profile) => profile.url),
+});
 
 const products = [
-  { name: 'Ramoneska skórzana z podpinką', price: '1 099 zł', priceNote: 'z podpinką zimową',
+  { slug: 'ramoneska-skorzana-z-podpinka', name: 'Ramoneska skórzana z podpinką', price: '1 099 zł', priceNote: 'z podpinką zimową',
     text: 'Czarna ramoneska na co dzień i na uczelnię. Bez podpinki: 899 zł.', liner: 'Podpinka w zestawie' },
-  { name: 'Kurtka skórzana, gotowa na podpinkę', price: '899 zł', priceNote: 'bez podpinki',
+  { slug: 'kurtka-skorzana-na-podpinke', name: 'Kurtka skórzana, gotowa na podpinkę', price: '899 zł', priceNote: 'bez podpinki',
     text: 'Prosty krój z koniakowej skóry, do pracy i na weekend. Podpinkę będzie można dokupić, kiedy przyjdzie zima.',
     liner: 'Będzie pasować każda podpinka MONSUN w tym samym rozmiarze' },
-  { name: 'Płaszcz skórzany z podpinką', price: '1 399 zł', priceNote: 'z podpinką zimową',
+  { slug: 'plaszcz-skorzany-z-podpinka', name: 'Płaszcz skórzany z podpinką', price: '1 399 zł', priceNote: 'z podpinką zimową',
     text: 'Dłuższy krój za biodro, na mroźne poranki.', liner: 'Podpinka w zestawie' },
-  { name: 'Kurtka jeansowa z zamkiem na podpinkę', price: '449 zł', priceNote: 'bez podpinki',
+  { slug: 'kurtka-jeansowa-na-podpinke', name: 'Kurtka jeansowa z zamkiem na podpinkę', price: '449 zł', priceNote: 'bez podpinki',
     text: 'Dla osób, które nie noszą skóry. Ten sam system podpinek.',
     liner: 'Będzie pasować każda podpinka MONSUN w tym samym rozmiarze' },
-  { name: 'Podpinka pikowana', price: 'od 199 zł', priceNote: 'lekka 199 zł, zimowa 249 zł',
+  { slug: 'podpinka-pikowana', name: 'Podpinka pikowana', price: 'od 199 zł', priceNote: 'lekka 199 zł, zimowa 249 zł',
     text: 'Będzie można nosić ją w kurtce albo osobno, jako kamizelkę.', liner: 'Do wszystkich kurtek MONSUN' },
 ];
 
@@ -28,6 +37,7 @@ const posts = [
 <Base
   title="MONSUN: skórzana kurtka z podpinką na cały rok"
   description="Skórzane i jeansowe kurtki z podpinką na zamek: jedna kurtka od styczniowego mrozu po kwietniowy deszcz. Projekt studencki PWr."
+  jsonLd={[organization]}
 >
   <section class="hero">
     <div class="wrap hero-grid">
@@ -35,9 +45,10 @@ const posts = [
         <h1>Odzież na lata, nie na sezony.</h1>
         <p class="lede">Skórzana kurtka z podpinką na zamek. Zimą podpinka jest w środku, wiosną zostaje w szafie, a kurtka ta sama.</p>
         <div class="hero-actions">
-          <!-- Switch the button back to the launch list when the form ships (B3). -->
-          <a class="btn" href="#sposoby">Zobacz, jak działa podpinka</a>
-          <a class="quiet" href="#kolekcja">Zobacz kolekcję</a>
+          {site.form
+            ? <a class="btn" href="#lista">Zapisz się na listę startową</a>
+            : <a class="btn" href="#sposoby">Zobacz, jak działa podpinka</a>}
+          <a class="quiet" href="/kolekcja/">Zobacz kolekcję</a>
         </div>
       </div>
       <HeroTemp />
@@ -59,7 +70,7 @@ const posts = [
         <div class="way-bar"><i class="liner">pod płaszcz, w chłodnym biurze<span class="visually-hidden">, orientacyjnie od +7 do +16°C</span></i></div>
         <div class="scale-axis" aria-hidden="true"><span>−10°C</span><span>−5°C</span><span>0°C</span><span>+5°C</span><span>+10°C</span><span>+15°C</span></div>
       </div>
-      <p class="note way-note">Zakresy orientacyjne. Sprawdzimy je na prototypie i opiszemy wynik na blogu.</p>
+      <p class="note way-note">Zakresy orientacyjne. Sprawdzimy je na prototypie i opiszemy wynik na blogu. <a href="/podpinka/">Jak działa podpinka</a></p>
     </div>
   </section>
 
@@ -72,14 +83,14 @@ const posts = [
       <ul class="products">
         {products.map((p) => (
           <li>
-            <h3>{p.name}</h3>
+            <h3><a href={`/kolekcja/${p.slug}/`}>{p.name}</a></h3>
             <p class="price">{p.price}<small>{p.priceNote}</small></p>
             <p class="meta">{p.text}</p>
             <p class="fit">{p.liner}</p>
           </li>
         ))}
       </ul>
-      <p class="note products-note">Zdjęcia i strony modeli dodamy w tym tygodniu.</p>
+      <p class="products-note"><a href="/kolekcja/">Zobacz wszystkie modele</a></p>
     </div>
   </section>
 
@@ -142,6 +153,8 @@ const posts = [
   .products { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); max-width: 900px; }
   .products li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .25rem 1.5rem; padding: 1.1rem .5rem; border-bottom: 1px solid var(--line); }
   .products h3 { font-size: var(--step-1); font-weight: 650; font-stretch: 90%; }
+  .products h3 a { color: var(--ink); text-decoration: none; }
+  .products h3 a:hover { color: var(--petrol); text-decoration: underline; }
   .price { font-variant-numeric: tabular-nums; font-weight: 650; text-align: right; white-space: nowrap; }
   .price small { display: block; font-weight: 400; color: var(--ink-soft); font-size: var(--step--1); }
   .meta { grid-column: 1; color: var(--ink-soft); font-size: .95rem; }
