@@ -1,29 +1,22 @@
 ---
-// launch-list (stub from M5c; B3 owns this folder from Wave B). Renders the #lista section. Until the Google Form is
-// configured (site.form is null) it shows the "opens soon" state with no inputs.
+// launch-list (ADR 0001 §5, plan 0002 B3): the #lista section. Place it once per page; the page passes `source`.
+// With site.form null it shows the "opens soon" state with no inputs. With a form configured it renders the form
+// that posts straight to Google Forms (mode 'post') or a link to the Form (mode 'link'), with the privacy summary.
+// Settings come from src/config/site.ts and are checked at build time; see README.md.
 import { site } from '../../config/site.ts';
+import LaunchListView from './LaunchListView.astro';
 
 export interface Props {
   /** Where the sign-up happened; sent as the form's `zrodlo` field, e.g. 'home' or 'podpinka'. */
   source: string;
   class?: string;
 }
-const { class: className } = Astro.props;
-const ready = site.form !== null;
+const { source, class: className } = Astro.props;
 ---
-<section id="lista" class:list={['launch-list', 'reading', className]}>
-  {ready ? (
-    <h2>Lista startowa</h2>
-  ) : (
-    <>
-      <h2>Lista startowa ruszy wkrótce</h2>
-      <p class="lede">Zapiszesz się tu adresem e-mail i napiszemy do Ciebie raz, gdy ruszy pierwsza seria. Nie zbieramy zamówień ani płatności.</p>
-    </>
-  )}
-</section>
-
-<style>
-  .launch-list { display: grid; gap: .8rem; padding-block: 2rem; border-top: 2px solid var(--saffron); }
-  h2 { font-size: var(--step-4); font-stretch: 85%; font-weight: 700; line-height: 1.02; }
-  .lede { max-width: 60ch; }
-</style>
+<LaunchListView
+  source={source}
+  class={className}
+  form={site.form}
+  contactEmail={site.contactEmail}
+  deleteBy={site.launchList.deleteBy}
+/>
