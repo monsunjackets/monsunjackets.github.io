@@ -9,6 +9,7 @@ import { site } from '../config/site.ts';
 // after every link above it. Rendering it right after the viewport meta puts the CSP meta before every link
 // and script in <head> (verify-dist rule csp-position). Internal Astro API; verify-dist fails if it stops working.
 import { renderHead } from 'astro/runtime/server/index.js';
+import themeBootstrap from '../scripts/theme-bootstrap.js?raw';
 
 export interface Props {
   /** Page title without the brand suffix. */
@@ -32,6 +33,7 @@ const imageUrl = new URL(image, Astro.site);
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   {renderHead()}
+  <script is:inline set:html={themeBootstrap} />
   <meta name="color-scheme" content="light dark">
   <title>{fullTitle}</title>
   <meta name="description" content={description}>

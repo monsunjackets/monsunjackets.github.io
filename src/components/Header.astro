@@ -9,6 +9,8 @@ import Logo from './Logo.astro';
       <a href="/#kolekcja">Kolekcja</a>
       <a href="/#pochodzenie">O nas</a>
     </nav>
+    <!-- Reserved for the theme-zip toggle (placed by the main session after F2); fixed size, so no layout shift. -->
+    <div class="theme-slot" data-theme-slot></div>
     <a class="btn small" href="/#lista">Lista startowa</a>
   </div>
 </header>
@@ -21,5 +23,6 @@ import Logo from './Logo.astro';
   .site-nav { display: flex; gap: 1.1rem; flex-wrap: wrap; margin-right: auto; }
   .site-nav a { color: var(--ink); text-decoration: none; font-weight: 500; }
   .site-nav a:hover { color: var(--petrol); }
+  .theme-slot { width: 9.5rem; height: 2.25rem; flex: none; }
   @media (max-width: 860px) { .site-nav { order: 3; width: 100%; } }
 </style>
