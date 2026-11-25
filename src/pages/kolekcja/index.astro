@@ -1,0 +1,45 @@
+---
+// The catalogue: every product in `order`, with its card photo or the placeholder slot (ADR 0001 §2).
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/shop/Breadcrumbs.astro';
+import ProductCard from '../../components/shop/ProductCard.astro';
+import { getProducts } from '../../components/shop/content.ts';
+import { breadcrumbListJsonLd } from '../../lib/schema.ts';
+import { checkDescription, checkTitle } from '../../lib/seo.ts';
+
+const products = await getProducts();
+const crumbs = [
+  { name: 'MONSUN', path: '/' },
+  { name: 'Kolekcja', path: '/kolekcja/' },
+];
+---
+<Base
+  title={checkTitle('Kolekcja: kurtki skórzane i jeansowe z podpinką na zamek')}
+  description={checkDescription('Kurtki skórzane i jeansowe MONSUN z podpinką na zamek oraz sama podpinka. Planowane ceny premierowe, wymiary i opis każdego modelu.')}
+  jsonLd={[breadcrumbListJsonLd(crumbs)]}
+>
+  <div class="wrap catalogue">
+    <Breadcrumbs items={crumbs} />
+    <header class="section-head">
+      <h1>Kolekcja</h1>
+      <p class="lede">Niczego jeszcze nie sprzedajemy: ceny to planowane ceny premierowe, a lista startowa zbiera osoby, które chcą wiedzieć o premierze.</p>
+    </header>
+    <ul class="grid">
+      {products.map((product, index) => (
+        <li><ProductCard product={product} priority={index < 3} /></li>
+      ))}
+    </ul>
+    <p class="note">Wszystkie kurtki mają mieć ten sam zamek, więc każda podpinka MONSUN będzie pasować do każdej kurtki w tym samym rozmiarze. <a href="/podpinka/">Jak działa podpinka</a></p>
+  </div>
+</Base>
+
+<style>
+  .catalogue { padding-bottom: clamp(3rem, 7vw, 6rem); }
+  .section-head { margin-top: 1.5rem; }
+  h1 { font-size: var(--display); font-stretch: 75%; font-weight: 720; line-height: .92; letter-spacing: -.015em; }
+  .grid {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); gap: 2.5rem 1.5rem;
+  }
+  .note { margin-top: 2.5rem; max-width: 64ch; }
+</style>
