@@ -14,6 +14,7 @@ import SizeTable from '../../components/shop/SizeTable.astro';
 import { builtContentPaths, contentLink, getProducts, productPath, type Product } from '../../components/shop/content.ts';
 import { formatPln, LINER_LABEL } from '../../components/shop/format.ts';
 import { gallerySlots } from '../../components/shop/gallery.ts';
+import LinerToggle from '../../modules/liner-toggle/index.astro';
 import { site } from '../../config/site.ts';
 import { isoDateTime, polishDate } from '../../lib/dates.ts';
 import { breadcrumbListJsonLd, productJsonLd } from '../../lib/schema.ts';
@@ -82,7 +83,7 @@ const cta = site.form ? 'Zapisz się na listę startową' : 'Lista startowa: rus
     <Breadcrumbs items={crumbs} />
     <div class="pdp">
       <div class="gallery-col">
-        {/* liner-toggle placement point (B6; placed by the main thread in M6) */}
+        <LinerToggle liner={data.liner} images={data.images} />
         <div class="gallery" data-vt-product={product.id}>
           {slots.length === 0 && (
             <ProductPhoto ratio="gallery" sizes={gallerySizes} placeholder="Zdjęcia tego modelu dodamy wkrótce." />

@@ -1,17 +1,22 @@
 ---
 import Logo from './Logo.astro';
+
+const path = Astro.url.pathname;
+// 'page' on the page itself, 'true' inside its section (e.g. a product under /kolekcja/).
+const current = (href: string) => (path === href ? 'page' : path.startsWith(href) ? 'true' : undefined);
 ---
 <header class="site-header">
   <div class="wrap">
     <a class="brand" href="/" aria-label="MONSUN, strona główna"><Logo class="brand-logo" quiltId="header-logo-quilt" /></a>
     <nav class="site-nav" aria-label="Główna">
-      <a href="/#sposoby">Jak działa podpinka</a>
-      <a href="/#kolekcja">Kolekcja</a>
-      <a href="/#pochodzenie">O nas</a>
+      <a href="/podpinka/" aria-current={current('/podpinka/')}>Jak działa podpinka</a>
+      <a href="/kolekcja/" aria-current={current('/kolekcja/')}>Kolekcja</a>
+      <a href="/blog/" aria-current={current('/blog/')}>Blog</a>
+      <a href="/o-nas/" aria-current={current('/o-nas/')}>O nas</a>
     </nav>
     <!-- Reserved for the theme-zip toggle (placed by the main session after F2); fixed size, so no layout shift. -->
     <div class="theme-slot" data-theme-slot></div>
-    <a class="btn small" href="/#lista">Lista startowa</a>
+    <a class="btn small" href="/podpinka/#lista">Lista startowa</a>
   </div>
 </header>
 
@@ -23,6 +28,7 @@ import Logo from './Logo.astro';
   .site-nav { display: flex; gap: 1.1rem; flex-wrap: wrap; margin-right: auto; }
   .site-nav a { color: var(--ink); text-decoration: none; font-weight: 500; }
   .site-nav a:hover { color: var(--petrol); }
+  .site-nav a[aria-current] { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .35em; }
   .theme-slot { width: 9.5rem; height: 2.25rem; flex: none; }
   @media (max-width: 860px) { .site-nav { order: 3; width: 100%; } }
 </style>
