@@ -1,0 +1,18 @@
+---
+// Lab demo for /lab/launch-list/link/: the fallback (mode 'link'). The action is the formResponse URL, as after
+// switching only `mode` in src/config/site.ts; the module links to the matching viewform page.
+import Base from '../../layouts/Base.astro';
+import LaunchListView from './LaunchListView.astro';
+import { labContact, labDeleteBy, labForm } from './lab-settings.ts';
+---
+<Base title="Lab: launch-list, link" description="Podgląd modułu launch-list w trybie linku do Formularza Google.">
+  <div class="wrap lab">
+    <h1>launch-list: link</h1>
+    <p class="note">Tryb zapasowy. Przycisk prowadzi do Formularza z wypełnionym polem źródła; <a href="/lab/launch-list/link/?utm_source=poster&amp;utm_medium=qr">z kampanią w adresie</a>.</p>
+    <LaunchListView source="lab" form={{ ...labForm, mode: 'link' }} contactEmail={labContact} deleteBy={labDeleteBy} />
+  </div>
+</Base>
+
+<style>
+  .lab { display: grid; gap: 2rem; padding-block: 2rem; }
+</style>
