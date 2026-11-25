@@ -47,5 +47,5 @@ Self-contained interactive pieces. Each lives in `src/modules/<name>/`, and the 
 | `launch-list` | built (B3): form posting to Google Forms, link fallback, "soon" state; driven by `site.form` |
 | `theme-zip` | to come (Fable, F2) |
 | `liner-toggle` | built (B6); M6 places it under the product gallery, see `src/modules/liner-toggle/README.md` |
-| `consent` | to come (B2) |
+| `consent` | built (B2); placed in `Base.astro` after the footer; renders nothing while `site.ga4Id` is null |
 | `page-transitions` | v2 (Fable, F3) |

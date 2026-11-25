@@ -19,8 +19,13 @@ import { site } from '../config/site.ts';
       <li><a href="/gwarancja/">Gwarancja i zwroty</a></li>
       <li><a href="/prywatnosc/">Prywatność</a></li>
     </ul>
-    <!-- True until GA4 ships: B2 replaces this line with the privacy and consent links. -->
-    <p class="note">Strona nie używa plików cookie ani narzędzi analitycznych.</p>
+    <div class="privacy">
+      {site.ga4Id === null ? (
+        <p class="note">Strona nie używa plików cookie ani narzędzi analitycznych.</p>
+      ) : (
+        <button type="button" class="link" data-consent-open hidden>Zmień zgodę na cookies</button>
+      )}
+    </div>
   </div>
 </footer>
 
@@ -32,5 +37,9 @@ import { site } from '../config/site.ts';
   .disclosure :global(svg) { height: 1.1rem; width: auto; aspect-ratio: 9757.7 / 1687; color: var(--ink); }
   ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; align-content: start; }
   a { color: var(--ink); }
+  .privacy { display: grid; gap: .4rem; align-content: start; justify-items: start; }
+  .link { font: inherit; color: var(--ink); background: none; border: 0; padding: 0; cursor: pointer; text-align: start;
+    text-decoration: underline; text-underline-offset: .18em; text-decoration-thickness: 1px; }
+  .link:hover { text-decoration-thickness: 2px; }
   @media (max-width: 860px) { .wrap { grid-template-columns: minmax(0, 1fr); } }
 </style>
