@@ -1,0 +1,156 @@
+---
+// Lab demo for /lab/liner-toggle/ (dev, or a build with MONSUN_LAB=1). Sample markup only: the product template
+// (B4) carries the same hooks. The "photos" are drawn sketches, so the demo needs no image file.
+import Base from '../../layouts/Base.astro';
+import LinerToggle from './index.astro';
+import { linerSlots, type LinerKind, type LinerState } from './liner-toggle.ts';
+
+type View = 'worn' | 'flat';
+interface Photo { key: string; view: View; state: LinerState }
+
+const viewName = { worn: 'Na osobie', flat: 'Rozłożona' } as const;
+const stateName = { in: 'z podpinką', out: 'bez podpinki' } as const;
+const alt = (p: Photo) =>
+  `Szkic: kurtka ${p.view === 'worn' ? 'noszona rozpięta' : 'rozłożona na płasko'}, ${
+    p.state === 'in' ? 'z wpiętą pikowaną podpinką' : 'bez podpinki, widać gładką podszewkę'
+  }`;
+const shell = {
+  worn: 'M150 120 250 120 310 150 345 360 315 368 295 220 292 452 108 452 105 220 85 368 55 360 90 150Z',
+  flat: 'M150 120 250 120 360 170 390 252 365 264 300 210 292 452 108 452 100 210 35 264 10 252 40 170Z',
+};
+const photos = (prefix: string, views: readonly View[] = ['worn', 'flat']): Photo[] =>
+  views.flatMap((view) => (['in', 'out'] as const).map((state) => ({ key: `${prefix}-${view}-${state}`, view, state })));
+
+// `photos` stands in for the product's images (the module reads only `state`). `slots: true` groups them with
+// linerSlots, as the product template would for the cross-fade; `false` keeps them flat.
+const samples: { id: string; title: string; note?: string; photos: Photo[]; slots: boolean; liner: LinerKind; initial?: LinerState }[] = [
+  { id: 'lab-a', title: 'Pary w osobnych slotach (zalecane): przenikanie', photos: photos('a'), slots: true, liner: 'included' },
+  { id: 'lab-b', title: 'Płaska galeria: zamiana bez animacji, start „Bez podpinki”', photos: photos('b'), slots: false, liner: 'compatible', initial: 'out' },
+  {
+    id: 'lab-c',
+    title: 'Podpinka (liner: liner): moduł nic nie renderuje',
+    note: 'Brak przełącznika, więc galeria pokazuje oba stany, a tabela obie kolumny bez wyróżnienia.',
+    photos: photos('c', ['worn']),
+    slots: true,
+    liner: 'liner',
+  },
+  {
+    id: 'lab-d',
+    title: 'Kurtka bez pary zdjęć: moduł nic nie renderuje',
+    note: 'Jak dziś ramoneska: jest zdjęcie z podpinką, ale brak zdjęcia bez niej. Zdjęcie zostaje widoczne.',
+    photos: [{ key: 'd-flat-in', view: 'flat', state: 'in' }],
+    slots: true,
+    liner: 'included',
+  },
+];
+const sizes = [
+  { size: 'S', chest: 52, chestWithLiner: 50, back: 62, sleeve: 62 },
+  { size: 'M', chest: 55, chestWithLiner: 53, back: 64, sleeve: 63 },
+  { size: 'L', chest: 58, chestWithLiner: 56, back: 66, sleeve: 64 },
+];
+---
+<Base title="Lab: liner-toggle" description="Podgląd przełącznika „Z podpinką / Bez podpinki” na przykładowej galerii i tabeli rozmiarów.">
+  <div class="wrap lab">
+    <h1>liner-toggle</h1>
+    <p class="note">
+      Przykładowe znaczniki z hookami <code>data-liner-scope</code>, <code>data-liner-view</code> i
+      <code>data-liner-col</code>. Szkice zamiast zdjęć. Bez obsługi <code>:has()</code> przełącznik znika, a galeria
+      i tabela pokazują oba stany.
+    </p>
+
+    {samples.map(({ id, title, note, photos, slots, liner, initial }) => (
+      <section class="sample" data-liner-scope aria-labelledby={`${id}-title`}>
+        <h2 id={`${id}-title`}>{title}</h2>
+        {note && <p>{note}</p>}
+        <div class="pdp">
+          <div class="gallery-col">
+            <div class="gallery" data-vt-product={id}>
+              {(slots ? linerSlots(photos) : photos.map((p) => [p])).map((group) => {
+                const figures = group.map((p) => (
+                  <figure class="photo" data-liner-view={p.state}>
+                    <svg viewBox="0 0 400 500" role="img" aria-label={alt(p)}>
+                      <defs>
+                        <pattern id={`${p.key}-q`} width="26" height="26" patternUnits="userSpaceOnUse" patternTransform="rotate(45 200 250)">
+                          <rect class="s-liner" width="26" height="26" />
+                          <path class="s-stitch" d="M0 0H26M0 0V26" />
+                        </pattern>
+                      </defs>
+                      <rect class="s-bg" width="400" height="500" />
+                      {p.view === 'worn' && <circle class="s-head" cx="200" cy="72" r="36" />}
+                      <path class="s-shell" d={shell[p.view]} />
+                      <path class={p.state === 'in' ? 's-inside-in' : 's-inside-out'} fill={p.state === 'in' ? `url(#${p.key}-q)` : undefined} d="M168 122H232L262 452H138Z" />
+                      <path class="s-zip" d="M168 122 140 452M232 122 260 452" />
+                    </svg>
+                    <figcaption>{viewName[p.view]}, {stateName[p.state]}</figcaption>
+                  </figure>
+                ));
+                return group.length === 2 ? <div class="slot">{figures}</div> : figures;
+              })}
+            </div>
+            <LinerToggle id={id} liner={liner} images={photos} initial={initial} />
+            <p class="note">Szkice przygotowane z AI do testu modułu.</p>
+          </div>
+          <div class="reading sizes">
+            <h3>Rozmiary</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Rozmiar</th>
+                    <th data-liner-col="out">Szerokość pod pachami</th>
+                    <th data-liner-col="in">Z wpiętą podpinką</th>
+                    <th>Długość pleców</th>
+                    <th>Rękaw</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sizes.map((s) => (
+                    <tr>
+                      <td>{s.size}</td>
+                      <td data-liner-col="out">{s.chest} cm</td>
+                      <td data-liner-col="in">{s.chestWithLiner} cm</td>
+                      <td>{s.back} cm</td>
+                      <td>{s.sleeve} cm</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    ))}
+
+  </div>
+</Base>
+
+<style>
+  .lab { display: grid; gap: 3.5rem; padding-block: 2rem 4rem; }
+  .lab > .note { max-width: 70ch; }
+  .sample { display: grid; gap: 1.25rem; }
+  .sample h2 { font-size: var(--step-2); font-stretch: 85%; font-weight: 700; }
+  .pdp { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(1.5rem, 4vw, 4rem); align-items: start; }
+  .gallery-col { display: grid; gap: 1rem; }
+  .gallery { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: .75rem; align-items: start; }
+  .photo { display: grid; gap: .35rem; margin: 0; }
+  .photo svg { display: block; width: 100%; height: auto; border-radius: var(--r-media); }
+  .photo figcaption { font-size: var(--step--1); color: var(--ink-soft); }
+  .sizes { display: grid; gap: .75rem; min-width: 0; }
+  .sizes h3 { font-size: var(--step-1); font-weight: 700; }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .95rem; }
+  th, td { text-align: left; padding: .6rem .8rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  thead th { font-weight: 600; color: var(--ink-soft); font-size: var(--step--1); }
+
+  .s-bg { fill: var(--sunk); }
+  .s-head { fill: var(--ink); fill-opacity: .18; }
+  .s-shell { fill: var(--cognac); }
+  .s-inside-out { fill: var(--sunk); }
+  .s-liner { fill: var(--petrol); }
+  .s-stitch { fill: none; stroke: var(--canvas); stroke-opacity: .4; stroke-width: 1.4; }
+  .s-zip { fill: none; stroke: var(--canvas); stroke-opacity: .85; stroke-width: 3; stroke-dasharray: 4 3.5; }
+
+  @media (max-width: 860px) {
+    .pdp { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
