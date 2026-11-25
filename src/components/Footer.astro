@@ -1,5 +1,6 @@
 ---
 import Logo from './Logo.astro';
+import { site } from '../config/site.ts';
 ---
 <footer class="site-footer">
   <div class="wrap">
@@ -7,6 +8,7 @@ import Logo from './Logo.astro';
       <Logo class="footer-logo" quiltId="footer-logo-quilt" />
       <p><strong>Projekt studencki PWr.</strong> MONSUN to marka koncepcyjna przygotowana na zajęcia z marketingu
         cyfrowego. Niczego nie sprzedajemy.</p>
+      {site.contactEmail ? <p>Kontakt: <a href={`mailto:${site.contactEmail}`}>{site.contactEmail}</a></p> : <p>Adres kontaktowy podamy wkrótce.</p>}
     </div>
     <ul aria-label="Na stronie">
       <li><a href="/#sposoby">Jak działa podpinka</a></li>

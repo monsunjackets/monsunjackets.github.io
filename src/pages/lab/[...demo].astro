@@ -1,0 +1,17 @@
+---
+// /lab/<module>/ demos (ADR 0001 §4, contract item 9). Generated in dev, and in production only with MONSUN_LAB=1
+// (for CSP checks); verify-dist fails if dist/lab exists otherwise.
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
+
+export function getStaticPaths() {
+  if (import.meta.env.PROD && process.env.MONSUN_LAB !== '1') return [];
+  const demos = import.meta.glob<{ default: AstroComponentFactory }>('../../modules/*/demo*.astro', { eager: true });
+  return Object.entries(demos).map(([path, mod]) => {
+    const [, name, variant] = path.match(/modules\/([^/]+)\/demo(?:-([^/.]+))?\.astro$/) ?? [];
+    return { params: { demo: variant ? `${name}/${variant}` : name }, props: { Demo: mod.default } };
+  });
+}
+
+const { Demo } = Astro.props;
+---
+<Demo />
