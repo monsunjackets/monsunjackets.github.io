@@ -1,0 +1,32 @@
+---
+// Post byline (lecture slide 7, element 2): the author with a link to their page, the dates as <time> with the
+// Warsaw offset, and the reading time.
+import type { CollectionEntry } from 'astro:content';
+import Avatar from './Avatar.astro';
+import { isoDateTime, polishDate } from '../../lib/dates.ts';
+
+export interface Props {
+  author: CollectionEntry<'authors'>;
+  published: Date;
+  updated?: Date | undefined;
+  /** Whole minutes, from readingMinutes(). */
+  minutes: number;
+}
+const { author, published, updated, minutes } = Astro.props;
+---
+<div class="byline">
+  <Avatar author={author} />
+  <p>
+    <a class="name" href={`/autorzy/${author.id}/`} rel="author">{author.data.name}</a>
+    <span>Opublikowano <time datetime={isoDateTime(published)}>{polishDate(published)}</time></span>
+    {updated && <span>Aktualizacja <time datetime={isoDateTime(updated)}>{polishDate(updated)}</time></span>}
+    <span>{minutes} min czytania</span>
+  </p>
+</div>
+
+<style>
+  .byline { display: flex; align-items: center; gap: .9rem; }
+  p { display: flex; flex-wrap: wrap; align-items: baseline; gap: .15rem .9rem; font-size: var(--step--1); color: var(--ink-soft); }
+  .name { flex-basis: 100%; color: var(--ink); font-size: var(--step-0); font-weight: 600; text-decoration: none; }
+  .name:hover { color: var(--petrol); text-decoration: underline; }
+</style>

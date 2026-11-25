@@ -1,0 +1,48 @@
+---
+// Shell of a content page from the `pages` collection: breadcrumbs, the title, the visible „Aktualizacja” date
+// (the same `updated` the sitemap uses) and the Markdown body on a reading surface.
+// Slots: `before` sits between the title and the body, the default slot after the body, `after` below the article.
+import { render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from './Breadcrumbs.astro';
+import Prose from './Prose.astro';
+import { PAGE_NAMES, type PageId } from './content.ts';
+import { isoDateTime, polishDate } from '../../lib/dates.ts';
+import { breadcrumbListJsonLd } from '../../lib/schema.ts';
+
+export interface Props {
+  page: CollectionEntry<'pages'>;
+}
+const { page } = Astro.props;
+const { title, description, updated } = page.data;
+const name: string | undefined = PAGE_NAMES[page.id as PageId];
+if (!name) throw new Error(`src/content/pages/${page.id}.md: no short name in PAGE_NAMES (src/components/editorial/content.ts)`);
+const { Content } = await render(page);
+
+const crumbs = [
+  { name: 'MONSUN', path: '/' },
+  { name, path: `/${page.id}/` },
+];
+---
+<Base title={title} description={description} jsonLd={[breadcrumbListJsonLd(crumbs)]}>
+  <div class="wrap">
+    <Breadcrumbs items={crumbs} />
+    <article class="page reading">
+      <header>
+        <h1>{title}</h1>
+        <p class="updated">Aktualizacja: <time datetime={isoDateTime(updated)}>{polishDate(updated)}</time></p>
+      </header>
+      <slot name="before" />
+      <Prose><Content /></Prose>
+      <slot />
+    </article>
+    <slot name="after" />
+  </div>
+</Base>
+
+<style>
+  .page { max-width: 760px; display: grid; gap: 2rem; padding: 1.25rem 1rem clamp(3rem, 7vw, 5rem); margin-inline: -1rem; }
+  header { display: grid; gap: .6rem; }
+  h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); font-stretch: 80%; font-weight: 720; line-height: 1; letter-spacing: -.01em; }
+  .updated { font-size: var(--step--1); color: var(--ink-soft); }
+</style>

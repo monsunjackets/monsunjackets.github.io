@@ -1,0 +1,29 @@
+---
+// The author's own photo (lecture slide 7, element 4) with its credit. The schema requires own: true and `by`, so
+// the declaration is explicit; software cannot check it, the caption states it.
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+
+export interface Props {
+  photo: CollectionEntry<'posts'>['data']['photo'];
+}
+const { photo } = Astro.props;
+// „Miłosz L.” already ends the sentence.
+const credit = /[.!?]$/u.test(photo.by) ? photo.by : `${photo.by}.`;
+---
+<figure class="own-photo">
+  <Image
+    src={photo.src}
+    alt={photo.alt}
+    widths={[480, 760, 1140, 1520]}
+    sizes="(min-width: 800px) 760px, calc(100vw - 2rem)"
+    priority
+  />
+  <figcaption>Zdjęcie: {credit} Własne zdjęcie, nie z AI.</figcaption>
+</figure>
+
+<style>
+  .own-photo { margin: 0; display: grid; gap: .5rem; }
+  .own-photo :global(img) { width: 100%; border-radius: var(--r-media); }
+  figcaption { font-size: var(--step--1); color: var(--ink-soft); }
+</style>

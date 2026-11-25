@@ -1,0 +1,22 @@
+---
+// Who controls the data and how to reach them (RODO art. 13(1)(a)–(b)), at the top of /prywatnosc/. The address
+// comes from src/config/site.ts; while it is null the page says so instead of naming one.
+import { site } from '../../config/site.ts';
+
+const email = site.contactEmail;
+---
+<section class="controller" aria-labelledby="administrator">
+  <h2 id="administrator">Administrator danych</h2>
+  {email ? (
+    <p>Administratorem danych jest zespół projektu studenckiego MONSUN (Politechnika Wrocławska). W sprawach danych osobowych napisz na <a href={`mailto:${email}`}>{email}</a>.</p>
+  ) : (
+    <p>Adres kontaktowy podamy wkrótce.</p>
+  )}
+</section>
+
+<style>
+  .controller { display: grid; gap: .4rem; padding: 1.1rem 1.25rem; border-radius: var(--r-media); background: var(--raised);
+    box-shadow: inset 0 0 0 1px var(--line); }
+  h2 { font-size: var(--step-1); font-stretch: 90%; font-weight: 700; }
+  p { max-width: 64ch; }
+</style>
