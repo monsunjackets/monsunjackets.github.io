@@ -1,0 +1,27 @@
+---
+// The author's photo, or their initials on the liner colour when the author has no photo. Decorative: the name
+// always stands next to it.
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import { initials } from '../../lib/editorial.ts';
+
+export interface Props {
+  author: CollectionEntry<'authors'>;
+  /** Rendered size in CSS pixels. */
+  size?: 44 | 96;
+}
+const { author, size = 44 } = Astro.props;
+const { photo, name } = author.data;
+---
+{photo ? (
+  <Image class:list={['avatar', `avatar-${size}`]} src={photo} alt="" width={size} height={size} densities={[1, 2]} fit="cover" />
+) : (
+  <span class:list={['avatar', `avatar-${size}`]} aria-hidden="true">{initials(name)}</span>
+)}
+
+<style>
+  .avatar { flex: none; border-radius: 50%; display: grid; place-items: center; object-fit: cover;
+    background: var(--petrol); color: var(--canvas); font-weight: 700; font-stretch: 90%; line-height: 1; }
+  .avatar-44 { width: 44px; height: 44px; font-size: var(--step-0); }
+  .avatar-96 { width: 96px; height: 96px; font-size: var(--step-3); }
+</style>
