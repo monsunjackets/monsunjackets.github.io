@@ -1,0 +1,32 @@
+---
+// The page GitHub Pages serves, with status 404, for every missing path (ADR 0001 §7). It has no URL of its own,
+// so it should carry no canonical and no og:url: `canonical={false}` asks Base for that (diff proposed in the B5
+// report; until it lands Base ignores the prop and verify-dist skips both tags on 404.html). Every link is
+// root-relative, because the page is served at arbitrary depths.
+import Base from '../layouts/Base.astro';
+---
+<Base
+  title="Nie ma takiej strony"
+  description="Pod tym adresem nie ma strony MONSUN. Zacznij od strony głównej, opisu podpinki albo bloga."
+  canonical={false}
+>
+  <div class="wrap">
+    <section class="not-found reading">
+      <p class="code" aria-hidden="true">404</p>
+      <h1>Nie ma takiej strony</h1>
+      <p class="lede">Adres mógł się zmienić albo ma literówkę. Zacznij od jednej z tych stron:</p>
+      <ul>
+        <li><a href="/">Strona główna</a></li>
+        <li><a href="/podpinka/">Jak działa podpinka</a></li>
+        <li><a href="/blog/">Blog</a></li>
+      </ul>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .not-found { max-width: 760px; display: grid; gap: 1.25rem; padding: clamp(3rem, 8vw, 6rem) 1rem; margin-inline: -1rem; }
+  .code { font-size: var(--display); font-stretch: 75%; font-weight: 720; line-height: .9; color: var(--petrol); font-variant-numeric: tabular-nums; }
+  h1 { font-size: var(--step-4); font-stretch: 85%; font-weight: 700; line-height: 1.02; }
+  ul { margin: 0; padding-left: 1.2rem; display: grid; gap: .4rem; font-size: var(--step-1); }
+</style>
