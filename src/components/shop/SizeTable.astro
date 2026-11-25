@@ -1,0 +1,83 @@
+---
+// Garment measurements per size, with the chest width both with the liner out and zipped in (research §5).
+// On the product page the two chest columns carry the liner-toggle hook `data-liner-col` (src/modules/README.md).
+import type { CollectionEntry } from 'astro:content';
+import { formatNumber } from './format.ts';
+import { linerFitNote, sizeColumns } from './sizes.ts';
+
+type ProductData = CollectionEntry<'products'>['data'];
+
+export interface Props {
+  sizes: ProductData['sizes'];
+  liner: ProductData['liner'];
+  sizesAreExample: boolean;
+  /** Names the table for assistive technology, e.g. the product name. */
+  caption: string;
+  /** Put `data-liner-col` on the chest columns (product page only). */
+  linerHooks?: boolean;
+}
+
+const { sizes, liner, sizesAreExample, caption, linerHooks = false } = Astro.props;
+const jacket = liner !== 'liner';
+const columns = sizeColumns(sizes);
+const withLiner = jacket && columns.chestWithLiner;
+const hook = (state: 'in' | 'out') => (linerHooks && jacket ? state : undefined);
+// A no-break space keeps the unit with its number.
+const cm = (value: number) => `${formatNumber(value)}\u00a0cm`;
+const fitNote = withLiner ? linerFitNote(sizes) : null;
+---
+<div class="size-table">
+  {sizesAreExample && (
+    <p class="note"><span class="draft">Wymiary przykładowe</span> Uzupełnimy je po uszyciu prototypu.</p>
+  )}
+  {sizes.length === 0 ? (
+    <p>Wymiary podamy po uszyciu prototypu.</p>
+  ) : (
+    <div class="table-wrap" role="region" aria-label={`Tabela rozmiarów: ${caption}`} tabindex="0">
+      <table>
+        <caption class="visually-hidden">Wymiary według rozmiaru: {caption}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Rozmiar</th>
+            <th scope="col" data-liner-col={hook('out')}>{jacket ? 'Pod pachami, bez podpinki' : 'Szerokość pod pachami'}</th>
+            {withLiner && <th scope="col" data-liner-col={hook('in')}>Pod pachami, z podpinką</th>}
+            <th scope="col">Długość pleców</th>
+            {columns.sleeve && <th scope="col">Rękaw</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {sizes.map((row) => (
+            <tr>
+              <th scope="row">{row.size}</th>
+              <td data-liner-col={hook('out')}>{cm(row.chest)}</td>
+              {withLiner && (
+                <td data-liner-col={hook('in')}>
+                  {row.chestWithLiner === undefined ? <><span aria-hidden="true">—</span><span class="visually-hidden">brak danych</span></> : cm(row.chestWithLiner)}
+                </td>
+              )}
+              <td>{cm(row.back)}</td>
+              {columns.sleeve && (
+                <td>{row.sleeve === undefined ? <><span aria-hidden="true">—</span><span class="visually-hidden">brak danych</span></> : cm(row.sleeve)}</td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+  {fitNote && <p class="fit-note">{fitNote}</p>}
+</div>
+
+<style>
+  .size-table { display: grid; gap: .8rem; min-width: 0; }
+  .draft {
+    display: inline-block; margin-right: .4rem; padding: .1rem .45rem; border-radius: var(--r-tag);
+    background: var(--sunk); color: var(--ink-soft); box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .95rem; }
+  th, td { text-align: left; padding: .6rem .8rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  thead th { font-weight: 600; color: var(--ink-soft); font-size: var(--step--1); white-space: normal; vertical-align: bottom; }
+  tbody th { font-weight: 650; }
+  .fit-note { max-width: 64ch; }
+</style>

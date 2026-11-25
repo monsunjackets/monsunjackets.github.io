@@ -1,0 +1,98 @@
+---
+// One product photo with its labels, or the placeholder slot while the product has no photo yet.
+// Every AI image says so in its caption (ADR 0001 §3); a photo with a liner state names the state, so a pair
+// still reads correctly when the liner toggle is absent and both photos are visible.
+// WebP with a JPEG fallback: AVIF would multiply the build time for every photo, and a PNG original (the asset
+// spec allows them) would otherwise fall back to a PNG several times the size.
+import { Picture } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import { AI_LABEL, STATE_LABEL } from './format.ts';
+
+type ProductImage = CollectionEntry<'products'>['data']['images'][number];
+
+export interface Props {
+  /** The photo; without one the placeholder slot is shown. */
+  image?: ProductImage | undefined;
+  /** Frame shape: 4:5 in the gallery, 2:3 on catalogue cards (asset spec). */
+  ratio: 'gallery' | 'card';
+  /** The `sizes` attribute for this layout. */
+  sizes: string;
+  /** Put the liner-toggle hook on the figure (product page only). */
+  linerHooks?: boolean;
+  /** Name the liner state in the caption. */
+  showState?: boolean;
+  /** `data-vt-product` for the frame, where the frame is the product's one transition wrapper on the page. */
+  vtProduct?: string | undefined;
+  /** Text of the placeholder slot. */
+  placeholder?: string;
+  /** The photo is in the first screen: load it at once. */
+  priority?: boolean;
+}
+
+const {
+  image,
+  ratio,
+  sizes,
+  linerHooks = false,
+  showState = false,
+  vtProduct,
+  placeholder = 'Zdjęcie dodamy wkrótce.',
+  priority = false,
+} = Astro.props;
+const state = image?.state;
+const stateLabel = showState && state ? STATE_LABEL[state] : undefined;
+---
+{image ? (
+  <figure class:list={['photo-figure', `is-${ratio}`]} data-liner-view={linerHooks ? state : undefined}>
+    <div class="photo" data-vt-product={vtProduct}>
+      <Picture
+        src={image.src}
+        alt={image.alt}
+        widths={[400, 640, 960, 1280]}
+        sizes={sizes}
+        formats={['webp']}
+        fallbackFormat="jpg"
+        loading={priority ? 'eager' : 'lazy'}
+        fetchpriority={priority ? 'high' : undefined}
+        decoding="async"
+      />
+    </div>
+    {(stateLabel || image.ai) && (
+      <figcaption>
+        {stateLabel && <span class="state">{stateLabel}</span>}
+        {image.ai && <span>{AI_LABEL}</span>}
+      </figcaption>
+    )}
+  </figure>
+) : (
+  <div class:list={['photo-slot', `is-${ratio}`]} data-vt-product={vtProduct}>
+    <p>{placeholder}</p>
+  </div>
+)}
+
+<style>
+  .photo-figure { margin: 0; display: grid; gap: .5rem; align-content: start; min-width: 0; }
+  .photo, .photo-slot {
+    border-radius: var(--r-media); overflow: hidden; background: var(--sunk);
+  }
+  .photo {
+    box-shadow: 0 1px 1px hsl(var(--shadow-color) / .12), 0 6px 14px hsl(var(--shadow-color) / .14);
+  }
+  .is-gallery .photo, .photo-slot.is-gallery { aspect-ratio: 4 / 5; }
+  .is-card .photo, .photo-slot.is-card { aspect-ratio: 2 / 3; }
+  .photo :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  figcaption {
+    display: flex; justify-content: space-between; gap: .25rem 1rem; flex-wrap: wrap;
+    font-size: var(--step--1); color: var(--ink-soft);
+  }
+  .state { color: var(--ink); font-weight: 600; }
+  /* The quilted slot: the liner's pattern stands in for the photo that is still to come. */
+  .photo-slot {
+    display: grid; place-items: center; padding: 1rem; text-align: center; color: var(--ink-soft);
+    box-shadow: inset 0 0 0 2px var(--line);
+    background-image:
+      repeating-linear-gradient(45deg, transparent 0 14px, var(--line) 14px 15px),
+      repeating-linear-gradient(-45deg, transparent 0 14px, var(--line) 14px 15px);
+  }
+  .photo-slot p { max-width: 22ch; padding: .3rem .6rem; border-radius: var(--r-tag); background: var(--sunk); }
+</style>
