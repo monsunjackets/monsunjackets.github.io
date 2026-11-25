@@ -24,7 +24,7 @@ Self-contained interactive pieces. Each lives in `src/modules/<name>/`, and the 
 |---|---|---|---|
 | `#lista` | id of the launch-list section | launch-list | header CTA, in-page links |
 | `[data-consent-open]` | attribute on the footer link | Footer | consent |
-| `monsun:lead` | CustomEvent on `document`, `detail: {source}` | launch-list | consent (sends `generate_lead`) |
+| `monsun:lead` | CustomEvent on `document`, `detail: {source}`; fires on a submit that passed browser validation, not on link clicks or a repeat within 5 s; `source` is the page label without campaign | launch-list | consent (sends `generate_lead`) |
 | `monsun-consent` | localStorage JSON `{v: 1, analytics, at}` | consent | consent |
 | `monsun-theme` | localStorage, `light` or `dark` | theme-zip | theme bootstrap |
 | `html[data-theme]` | `light` or `dark`; absent means "follow the system" | bootstrap, theme-zip | `tokens.css` |
@@ -44,7 +44,7 @@ Self-contained interactive pieces. Each lives in `src/modules/<name>/`, and the 
 | Module | State |
 |---|---|
 | `hero-temp` | merged (gate H, 24 Nov); placed on the home page |
-| `launch-list` | stub ("opens soon"); B3 builds the form |
+| `launch-list` | built (B3): form posting to Google Forms, link fallback, "soon" state; driven by `site.form` |
 | `theme-zip` | to come (Fable, F2) |
 | `liner-toggle` | to come (B6) |
 | `consent` | to come (B2) |

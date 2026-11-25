@@ -3,6 +3,7 @@
 import Base from '../layouts/Base.astro';
 import HeroTemp from '../modules/hero-temp/index.astro';
 import LaunchList from '../modules/launch-list/index.astro';
+import { site } from '../config/site.ts';
 
 const products = [
   { name: 'Ramoneska skórzana z podpinką', price: '1 099 zł', priceNote: 'z podpinką zimową',
@@ -35,8 +36,9 @@ const posts = [
         <h1>Odzież na lata, nie na sezony.</h1>
         <p class="lede">Skórzana kurtka z podpinką na zamek. Zimą podpinka jest w środku, wiosną zostaje w szafie, a kurtka ta sama.</p>
         <div class="hero-actions">
-          <!-- Switch the button back to the launch list when the form ships (B3). -->
-          <a class="btn" href="#sposoby">Zobacz, jak działa podpinka</a>
+          {site.form
+            ? <a class="btn" href="#lista">Zapisz się na listę startową</a>
+            : <a class="btn" href="#sposoby">Zobacz, jak działa podpinka</a>}
           <a class="quiet" href="#kolekcja">Zobacz kolekcję</a>
         </div>
       </div>
