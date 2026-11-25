@@ -1,0 +1,57 @@
+---
+// consent: the bottom bar and GA4 in Consent Mode basic (ADR 0001 §6). Details: README.md next to this file.
+// Renders nothing while ga4Id is null: no bar, no script, no request to Google.
+import { isMeasurementId } from './consent.ts';
+
+export interface Props {
+  /** GA4 measurement id (`G-…`) from src/config/site.ts, or null while GA4 is not set up. */
+  ga4Id: string | null;
+  /** The privacy page the bar links to. */
+  privacyHref?: string;
+}
+const { ga4Id, privacyHref = '/prywatnosc/' } = Astro.props;
+if (ga4Id !== null && !isMeasurementId(ga4Id)) {
+  throw new Error(`consent: ga4Id ${JSON.stringify(ga4Id)} is not a GA4 measurement id ("G-" and capitals or digits)`);
+}
+---
+{ga4Id !== null && (
+  <section class="consent" data-consent data-ga4-id={ga4Id} aria-labelledby="consent-title" tabindex="-1" hidden>
+    <div class="wrap inner">
+      <div class="text">
+        <h2 id="consent-title">Pliki cookie i statystyki</h2>
+        <p>Za Twoją zgodą użyjemy Google Analytics 4, żeby policzyć odwiedziny strony. GA4 zapisze wtedy pliki
+          cookie <code>_ga</code> i prześle do Google dane o wizycie. Bez zgody nie wczytamy GA4 i nie zapiszemy tych
+          plików. Zdanie zmienisz w każdej chwili w stopce strony. <a href={privacyHref}>Polityka prywatności</a></p>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn" data-consent-choice="accept">Akceptuj</button>
+        <button type="button" class="btn" data-consent-choice="reject">Odrzuć</button>
+      </div>
+    </div>
+  </section>
+  <script>
+    import { initConsent } from './consent.ts';
+
+    const bar = document.querySelector<HTMLElement>('[data-consent]');
+    if (bar) initConsent(bar);
+  </script>
+)}
+
+<style>
+  /* Sticky at the end of <body>: it rides on the bottom edge while the page scrolls and settles below the footer
+     at the end, so it never covers the last of the content. */
+  .consent {
+    position: sticky; bottom: 0; z-index: 10;
+    background: var(--raised); color: var(--ink);
+    border-top: 2px solid var(--saffron);
+    box-shadow: 0 -4px 16px hsl(var(--shadow-color) / .18);
+  }
+  .inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem; padding-block: 1rem; }
+  .text { display: grid; gap: .3rem; max-width: 72ch; font-size: var(--step--1); }
+  h2 { font-size: var(--step-0); font-weight: 700; }
+  code { font: inherit; font-weight: 600; }
+  /* „Akceptuj” and „Odrzuć” are the same button in two equal columns. */
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; flex: 0 1 18rem; }
+  .actions .btn { justify-content: center; }
+  @media (max-width: 540px) { .actions { flex-basis: 100%; } }
+</style>
