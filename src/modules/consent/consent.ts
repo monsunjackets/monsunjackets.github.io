@@ -50,6 +50,23 @@ export function showBarOnLoad(stored: ConsentRecord | null): boolean {
   return stored === null;
 }
 
+/**
+ * Whether a `storage` event may have changed the stored choice: it names our key, or no key at all, which is how
+ * the browser reports `localStorage.clear()` in another tab.
+ */
+export function concernsConsent(key: string | null): boolean {
+  return key === null || key === STORAGE_KEY;
+}
+
+/**
+ * Whether this page must stop GA4 because the choice changed elsewhere (another tab, or another page before a
+ * back/forward-cache restore): GA4 runs here, but the stored choice no longer grants it. A missing or unreadable
+ * choice does not grant it either.
+ */
+export function withdrawnElsewhere(granted: boolean, stored: ConsentRecord | null): boolean {
+  return granted && stored?.analytics !== true;
+}
+
 /** The cookies GA4 sets for this measurement id: `_ga` and `_ga_<id without "G-">`. */
 export function gaCookieNames(ga4Id: string): string[] {
   return ['_ga', `_ga_${ga4Id.replace(/^G-/, '')}`];
@@ -72,7 +89,8 @@ export function tagUrl(ga4Id: string): string {
 
 /**
  * Wires the bar (`[data-consent]`, rendered `hidden`) to the page: shows it while no choice is stored, loads GA4
- * after „Akceptuj”, reopens it from any `[data-consent-open]`, handles withdrawal and sends `generate_lead`.
+ * after „Akceptuj”, reopens it from any `[data-consent-open]`, handles withdrawal (here, in another tab, or before a
+ * back/forward-cache restore) and sends `generate_lead`.
  */
 export function initConsent(bar: HTMLElement): void {
   const id = bar.dataset.ga4Id;
@@ -86,7 +104,7 @@ export function initConsent(bar: HTMLElement): void {
     (page.dataLayer ??= []).push(arguments);
   };
 
-  /** True once GA4 runs in this page view, which happens only after consent; withdrawal reloads the page. */
+  /** True while GA4 runs in this page view: only after consent, and until a withdrawal, which reloads the page. */
   let granted = false;
   let opener: HTMLElement | null = null;
 
@@ -114,26 +132,49 @@ export function initConsent(bar: HTMLElement): void {
   const hide = (): void => {
     const hadFocus = bar.contains(document.activeElement);
     bar.hidden = true;
-    if (hadFocus) opener?.focus();
+    if (hadFocus) {
+      // Back to the control that opened the bar. The first-visit bar has no opener: focus goes to the control that
+      // reopens it (the footer's, the last one before the bar in the tab order), without scrolling the page to it.
+      const target = opener ?? Array.from(document.querySelectorAll<HTMLElement>('[data-consent-open]')).at(-1);
+      target?.focus({ preventScroll: opener === null });
+    }
     opener = null;
+  };
+
+  const expireCookies = (): void => {
+    for (const cookie of expiredCookies(id, location.hostname)) document.cookie = cookie;
+  };
+
+  /** Stops the running tag, deletes its cookies and reloads, so the page continues without GA4. */
+  const withdraw = (): void => {
+    granted = false; // no generate_lead, and a second storage event before the reload does nothing
+    // Stop the tag first, so nothing it sends while the page unloads writes the cookies again.
+    Object.assign(page, { [`ga-disable-${id}`]: true }); // GA's documented opt-out switch
+    gtag('consent', 'update', { analytics_storage: 'denied' });
+    expireCookies();
+    location.reload();
   };
 
   const choose = (analytics: boolean): void => {
     const withdrawing = !analytics && granted;
     store(serializeConsent(analytics, new Date()));
     hide();
-    if (analytics) {
-      loadTag();
-      return;
-    }
-    if (withdrawing) {
-      // Stop the running tag first, so nothing it sends while the page unloads writes the cookies again.
-      Object.assign(page, { [`ga-disable-${id}`]: true }); // GA's documented opt-out switch
-      gtag('consent', 'update', { analytics_storage: 'denied' });
-    }
-    for (const cookie of expiredCookies(id, location.hostname)) document.cookie = cookie;
-    if (withdrawing) location.reload();
+    if (analytics) loadTag();
+    else if (withdrawing) withdraw();
+    else expireCookies();
   };
+
+  // A choice made elsewhere: another tab withdrew (or cleared the storage), or this page comes back from the
+  // back/forward cache after a withdrawal on another page. Either way the tag still running here must stop.
+  const recheck = (): void => {
+    if (withdrawnElsewhere(granted, load())) withdraw();
+  };
+  window.addEventListener('storage', (event) => {
+    if (concernsConsent(event.key)) recheck();
+  });
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) recheck();
+  });
 
   accept.addEventListener('click', () => choose(true));
   reject.addEventListener('click', () => choose(false));

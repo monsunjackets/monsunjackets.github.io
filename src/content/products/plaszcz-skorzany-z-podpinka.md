@@ -7,9 +7,9 @@ forWhom: Dla osób, które zimą wolą dłuższy krój niż kurtka, na mroźne p
 liner: included
 plannedPrice:
   pln: 1399
-  note: Z podpinką zimową w zestawie.
+  note: Z podpinką zimową.
 benefits:
-  - title: Podpinka zimowa w zestawie
+  - title: Planowany zestaw z podpinką zimową
     proof: Pikowana podpinka będzie się wpinać od środka, na zamek wzdłuż poły. Wiosną ją wypniesz.
     href: /podpinka/
   - title: Dłuższy krój, za biodro

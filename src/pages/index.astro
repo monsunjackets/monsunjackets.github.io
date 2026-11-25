@@ -3,6 +3,8 @@
 import Base from '../layouts/Base.astro';
 import HeroTemp from '../modules/hero-temp/index.astro';
 import LaunchList from '../modules/launch-list/index.astro';
+import { getProducts, productPath } from '../components/shop/content.ts';
+import { formatPln, linerLabel } from '../components/shop/format.ts';
 import { site } from '../config/site.ts';
 import { organizationJsonLd } from '../lib/schema.ts';
 
@@ -13,20 +15,8 @@ const organization = organizationJsonLd({
   sameAs: site.social.map((profile) => profile.url),
 });
 
-const products = [
-  { slug: 'ramoneska-skorzana-z-podpinka', name: 'Ramoneska skórzana z podpinką', price: '1 099 zł', priceNote: 'z podpinką zimową',
-    text: 'Czarna ramoneska na co dzień i na uczelnię. Bez podpinki: 899 zł.', liner: 'Podpinka w zestawie' },
-  { slug: 'kurtka-skorzana-na-podpinke', name: 'Kurtka skórzana, gotowa na podpinkę', price: '899 zł', priceNote: 'bez podpinki',
-    text: 'Prosty krój z koniakowej skóry, do pracy i na weekend. Podpinkę będzie można dokupić, kiedy przyjdzie zima.',
-    liner: 'Będzie pasować każda podpinka MONSUN w tym samym rozmiarze' },
-  { slug: 'plaszcz-skorzany-z-podpinka', name: 'Płaszcz skórzany z podpinką', price: '1 399 zł', priceNote: 'z podpinką zimową',
-    text: 'Dłuższy krój za biodro, na mroźne poranki.', liner: 'Podpinka w zestawie' },
-  { slug: 'kurtka-jeansowa-na-podpinke', name: 'Kurtka jeansowa z zamkiem na podpinkę', price: '449 zł', priceNote: 'bez podpinki',
-    text: 'Dla osób, które nie noszą skóry. Ten sam system podpinek.',
-    liner: 'Będzie pasować każda podpinka MONSUN w tym samym rozmiarze' },
-  { slug: 'podpinka-pikowana', name: 'Podpinka pikowana', price: 'od 199 zł', priceNote: 'lekka 199 zł, zimowa 249 zł',
-    text: 'Będzie można nosić ją w kurtce albo osobno, jako kamizelkę.', liner: 'Do wszystkich kurtek MONSUN' },
-];
+// The collection is the one source of order, names, planned prices and liner wording (the catalogue uses the same).
+const products = await getProducts();
 
 const posts = [
   'Kurtka skórzana na zimę: jak nosić ją od listopada do kwietnia',
@@ -81,12 +71,13 @@ const posts = [
         <p class="lede">Pięć modeli. Niczego jeszcze nie sprzedajemy: ceny to planowane ceny premierowe, a lista startowa zbiera osoby, które chcą wiedzieć o premierze.</p>
       </div>
       <ul class="products">
-        {products.map((p) => (
+        {products.map((product) => (
           <li>
-            <h3><a href={`/kolekcja/${p.slug}/`}>{p.name}</a></h3>
-            <p class="price">{p.price}<small>{p.priceNote}</small></p>
-            <p class="meta">{p.text}</p>
-            <p class="fit">{p.liner}</p>
+            <h3><a href={productPath(product)}>{product.data.name}</a></h3>
+            <p class="price">{formatPln(product.data.plannedPrice.pln)}</p>
+            <p class="price-note">{product.data.plannedPrice.note}</p>
+            <p class="meta">{product.data.forWhom}</p>
+            <p class="fit">{linerLabel(product.data.liner)}</p>
           </li>
         ))}
       </ul>
@@ -98,7 +89,7 @@ const posts = [
     <div class="wrap provenance">
       <div class="section-head">
         <h2>Skąd będzie Twoja kurtka</h2>
-        <p class="lede">Kurtki chcemy szyć w Indiach, z rzemieślnikami, którzy pracują ze skórą od pokoleń. Piszemy w czasie przyszłym, bo MONSUN to projekt studencki i marka koncepcyjna.</p>
+        <p class="lede">Kurtki chcemy szyć w Indiach, w zakładzie, którego jeszcze nie wybraliśmy. Piszemy w czasie przyszłym, bo MONSUN to projekt studencki i marka koncepcyjna.</p>
       </div>
       <dl class="facts">
         <div><dt>Skóra</dt><dd>Owcza i bydlęca, z garbarni z certyfikatem Leather Working Group. To nasz wymóg dla dostawcy, nie gotowy fakt.</dd></div>
@@ -156,8 +147,8 @@ const posts = [
   .products h3 a { color: var(--ink); text-decoration: none; }
   .products h3 a:hover { color: var(--petrol); text-decoration: underline; }
   .price { font-variant-numeric: tabular-nums; font-weight: 650; text-align: right; white-space: nowrap; }
-  .price small { display: block; font-weight: 400; color: var(--ink-soft); font-size: var(--step--1); }
-  .meta { grid-column: 1; color: var(--ink-soft); font-size: .95rem; }
+  .price-note { grid-column: 1 / -1; color: var(--ink-soft); font-size: var(--step--1); }
+  .meta { grid-column: 1 / -1; color: var(--ink-soft); font-size: .95rem; }
   .fit { grid-column: 1 / -1; font-size: var(--step--1); color: var(--petrol); }
   .products-note { margin-top: 1rem; }
 

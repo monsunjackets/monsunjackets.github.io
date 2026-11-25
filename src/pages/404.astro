@@ -1,8 +1,7 @@
 ---
 // The page GitHub Pages serves, with status 404, for every missing path (ADR 0001 §7). It has no URL of its own,
-// so it should carry no canonical and no og:url: `canonical={false}` asks Base for that (diff proposed in the B5
-// report; until it lands Base ignores the prop and verify-dist skips both tags on 404.html). Every link is
-// root-relative, because the page is served at arbitrary depths.
+// so `canonical={false}` makes Base leave out the canonical link and og:url (verify-dist does not require them on
+// 404.html). Every link is root-relative, because the page is served at arbitrary depths.
 import Base from '../layouts/Base.astro';
 ---
 <Base

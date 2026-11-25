@@ -1,13 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  concernsConsent,
   expiredCookies,
   gaCookieNames,
   isMeasurementId,
   parseConsent,
   serializeConsent,
   showBarOnLoad,
+  STORAGE_KEY,
   tagUrl,
+  withdrawnElsewhere,
 } from './consent.ts';
 
 const AT = '2026-11-25T14:00:00.000Z';
@@ -58,6 +61,28 @@ test('the bar opens by itself only while there is no valid choice', () => {
   assert.equal(showBarOnLoad(parseConsent('{')), true);
   assert.equal(showBarOnLoad(parseConsent(serializeConsent(true, new Date(AT)))), false);
   assert.equal(showBarOnLoad(parseConsent(serializeConsent(false, new Date(AT)))), false);
+});
+
+test('a storage event concerns the choice when it names the consent key or reports cleared storage', () => {
+  assert.equal(STORAGE_KEY, 'monsun-consent');
+  assert.equal(concernsConsent('monsun-consent'), true);
+  assert.equal(concernsConsent(null), true, 'localStorage.clear() in another tab');
+  for (const key of ['monsun-theme', '', 'monsun-consent ', 'Monsun-Consent', '_ga']) assert.equal(concernsConsent(key), false, key);
+});
+
+test('a page running GA4 withdraws once the stored choice no longer grants it', () => {
+  const accepted = parseConsent(serializeConsent(true, new Date(AT)));
+  const rejected = parseConsent(serializeConsent(false, new Date(AT)));
+  assert.equal(withdrawnElsewhere(true, rejected), true, 'refused in another tab');
+  assert.equal(withdrawnElsewhere(true, null), true, 'storage cleared, or the value is no longer valid');
+  assert.equal(withdrawnElsewhere(true, parseConsent('{')), true, 'a corrupt value never keeps consent');
+  assert.equal(withdrawnElsewhere(true, accepted), false, 'still accepted');
+});
+
+test('a page without GA4 has nothing to withdraw, whatever is stored', () => {
+  for (const stored of [null, parseConsent(serializeConsent(false, new Date(AT))), parseConsent(serializeConsent(true, new Date(AT)))]) {
+    assert.equal(withdrawnElsewhere(false, stored), false, JSON.stringify(stored));
+  }
 });
 
 test('the GA4 cookie names drop the "G-" prefix from the measurement id', () => {

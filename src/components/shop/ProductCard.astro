@@ -1,7 +1,7 @@
 ---
 // A product in the catalogue: photo, name, planned price and what it means for the liner. The whole card is
 // clickable through the name's link, so a screen reader hears one short link per product.
-import { formatPln, LINER_LABEL } from './format.ts';
+import { formatPln, linerLabel } from './format.ts';
 import { cardImage } from './gallery.ts';
 import { productPath, type Product } from './content.ts';
 import ProductPhoto from './ProductPhoto.astro';
@@ -27,7 +27,7 @@ const { name, plannedPrice, forWhom, liner, images } = product.data;
     <p class="price">{formatPln(plannedPrice.pln)}</p>
     <p class="price-note">{plannedPrice.note}</p>
     <p class="for">{forWhom}</p>
-    <p class="fit">{LINER_LABEL[liner]}</p>
+    <p class="fit">{linerLabel(liner)}</p>
   </div>
 </article>
 
