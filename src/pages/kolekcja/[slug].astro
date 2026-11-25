@@ -1,7 +1,8 @@
 ---
 // Product page (research §5, product page anatomy): name and who it is for, three benefits with proof, one
 // planned launch price, AI-labelled photos, the three ways, sizes with the liner in and out, provenance as planned
-// standards, care, warranty, FAQ and one launch-list button.
+// standards, care, warranty, FAQ, one launch-list button and the launch list itself (#lista), whose `zrodlo` names
+// this product and carries the UTM tags of an ad landing.
 // Hooks for the liner toggle and page transitions as named in src/modules/README.md: `data-liner-scope` on the
 // product container (jackets only: the liner has no liner state), `data-liner-view` on the gallery figures,
 // `data-liner-col` on the chest columns, and `data-vt-product` on the gallery wrapper.
@@ -12,8 +13,9 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import ProductPhoto from '../../components/shop/ProductPhoto.astro';
 import SizeTable from '../../components/shop/SizeTable.astro';
 import { builtContentPaths, contentLink, getProducts, productPath, type Product } from '../../components/shop/content.ts';
-import { formatPln, linerLabel } from '../../components/shop/format.ts';
+import { formatPln, labelledAlt, linerLabel } from '../../components/shop/format.ts';
 import { gallerySlots } from '../../components/shop/gallery.ts';
+import LaunchList from '../../modules/launch-list/index.astro';
 import LinerToggle from '../../modules/liner-toggle/index.astro';
 import { site } from '../../config/site.ts';
 import { isoDateTime, polishDate } from '../../lib/dates.ts';
@@ -64,11 +66,13 @@ const crumbs = [
 const ldImages = await Promise.all(
   data.images.map(async ({ src }) => (await getImage({ src, width: Math.min(1200, src.width), format: 'jpg' })).src),
 );
-const lead = data.images[0]?.src;
-// Base declares a 1200×630 preview and the image service never enlarges, so a smaller photo keeps the default.
-const ogImage = lead && lead.width >= 1200 && lead.height >= 630
-  ? (await getImage({ src: lead, width: 1200, height: 630, fit: 'cover', format: 'jpg' })).src
+const lead = data.images[0];
+// Base declares a 1200×630 preview and the image service never enlarges, so a smaller photo keeps the default
+// image and its alt text. A preview of an AI image says so in its alt text, as the caption does on the page.
+const ogImage = lead && lead.src.width >= 1200 && lead.src.height >= 630
+  ? (await getImage({ src: lead.src, width: 1200, height: 630, fit: 'cover', format: 'jpg' })).src
   : undefined;
+const ogImageAlt = ogImage && lead ? labelledAlt(lead) : undefined;
 const jsonLd = [
   ...(ldImages.length > 0
     ? [productJsonLd({ name: data.name, description: data.description, path, images: ldImages, brand: 'MONSUN' })]
@@ -78,7 +82,7 @@ const jsonLd = [
 
 const cta = site.form ? 'Zapisz się na listę startową' : 'Lista startowa: ruszy wkrótce';
 ---
-<Base title={checkTitle(data.title)} description={checkDescription(data.description)} image={ogImage} jsonLd={jsonLd}>
+<Base title={checkTitle(data.title)} description={checkDescription(data.description)} image={ogImage} imageAlt={ogImageAlt} jsonLd={jsonLd}>
   <article class="wrap product" data-liner-scope={jacket ? '' : undefined}>
     <Breadcrumbs items={crumbs} />
     <div class="pdp">
@@ -119,8 +123,8 @@ const cta = site.form ? 'Zapisz się na listę startową' : 'Lista startowa: rus
           <span class="note">{data.plannedPrice.note}</span>
         </div>
         <p class="fit">{linerLabel(data.liner)}</p>
-        <a class="btn" href="/podpinka/#lista">{cta}</a>
-        <p class="note">Napiszemy do Ciebie, gdy ruszy pierwsza seria. Nie zbieramy zamówień ani płatności.</p>
+        <a class="btn" href="#lista">{cta}</a>
+        <p class="note">Napiszemy do Ciebie raz: gdy MONSUN ruszy albo gdy projekt się zakończy. Nie zbieramy zamówień ani płatności.</p>
       </div>
     </div>
 
@@ -185,6 +189,8 @@ const cta = site.form ? 'Zapisz się na listę startową' : 'Lista startowa: rus
 
       <p class="note">Aktualizacja: <time datetime={isoDateTime(data.updated)}>{polishDate(data.updated)}</time></p>
     </div>
+
+    <div class="list"><LaunchList source={`kolekcja/${product.id}`} /></div>
   </article>
 </Base>
 
@@ -218,6 +224,7 @@ const cta = site.form ? 'Zapisz się na listę startową' : 'Lista startowa: rus
   .buybox .btn { justify-self: start; }
 
   .sections { display: grid; gap: 1.5rem; max-width: 820px; }
+  .list { max-width: 820px; margin-top: clamp(2rem, 5vw, 3rem); }
   .panel { display: grid; gap: .9rem; align-content: start; min-width: 0; }
   .panel h2 { font-size: var(--step-3); font-stretch: 85%; font-weight: 700; line-height: 1.05; }
   .panel > p, .care, .facts { max-width: 64ch; }
