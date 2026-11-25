@@ -1,0 +1,16 @@
+---
+// Lab demo for /lab/hero-temp/ (dev, or a build with MONSUN_LAB=1). Both initial states and both tones.
+import Base from '../../layouts/Base.astro';
+import HeroTemp from './index.astro';
+---
+<Base title="Lab: hero-temp" description="Podgląd modułu hero-temp w obu stanach i obu tonach kurtki.">
+  <div class="wrap lab">
+    <h1>hero-temp</h1>
+    <HeroTemp id="lab-a" />
+    <HeroTemp id="lab-b" initial="warm" tone="ink" />
+  </div>
+</Base>
+
+<style>
+  .lab { display: grid; gap: 3rem; padding-block: 2rem; max-width: 520px; }
+</style>

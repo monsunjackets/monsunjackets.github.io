@@ -4,6 +4,7 @@ import '../styles/tokens.css';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { site } from '../config/site.ts';
 
 export interface Props {
   /** Page title without the brand suffix. */
@@ -12,8 +13,11 @@ export interface Props {
   description: string;
   /** Link-preview image (1200×630), path from the site root. */
   image?: string;
+  /** JSON-LD objects for this page, serialised with the A2 helpers once they land. */
+  jsonLd?: object[];
 }
-const { title, description, image = '/og-default.png' } = Astro.props;
+const { title, description, image = '/og-default.png', jsonLd = [] } = Astro.props;
+const ld = (data: object) => JSON.stringify(data).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const fullTitle = Astro.url.pathname === '/' ? title : `${title} | MONSUN`;
 const imageUrl = new URL(image, Astro.site);
@@ -39,6 +43,10 @@ const imageUrl = new URL(image, Astro.site);
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="MONSUN: Odzież na lata, nie na sezony.">
   <meta name="twitter:card" content="summary_large_image">
+  {site.gscVerification && <meta name="google-site-verification" content={site.gscVerification}>}
+  {jsonLd.map((data) => <script type="application/ld+json" set:html={ld(data)} />)}
+  <!-- consent module placement point (B2) -->
+  <slot name="head" />
   <link rel="preload" href="/fonts/AnekLatin-VF.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
