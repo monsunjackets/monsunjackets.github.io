@@ -96,9 +96,10 @@ the blocked load in Resource Timing, so read the panel's „Inne domeny” row t
 verify` and `PORT=… MONSUN_LAB=1 scripts/dock npm run preview`; revert before committing. In `astro dev` (no CSP)
 the demo works as is.
 
-The demo also takes `?lab=accept`, `?lab=reject` and `?lab=accept,lead`, which press that button after load and
-then drop the parameter (so a withdrawal's reload does not press it again); the panel shows the result, which a
-headless `--dump-dom` run can read.
+For headless runs the demo takes `?lab=` with steps run in order after load: `open` (clicks the footer's
+`[data-consent-open]`, else the demo's), `accept`, `reject`, `lead` (sends `monsun:lead` 1.5 s later), e.g.
+`?lab=accept,lead` or `?lab=open,reject`. It drops the parameter first, so a withdrawal's reload does not repeat the
+steps; the panel shows the result, which `msedge --headless --dump-dom` (or Chrome) can read.
 
 ## Browser checks (build plus preview, CSP on)
 
@@ -124,6 +125,9 @@ Run on a real page once the module is placed and `ga4Id` is set, in a fresh brow
 
 Already run in headless Edge against the lab demo with the test id (bar state, storage, cookies, gtag queue,
 cross-origin loads, CSP violations): steps 1, 2, 3 and 5; step 6 on one page followed by a `monsun:lead`; step 4 up
-to the queued `generate_lead` command (the hit itself was not inspected). JS off could not be run that way
+to the queued `generate_lead` command (the hit itself was not inspected). A second round ran with the proposed
+Footer and Base changes applied locally and the test id in `site.ts`: one bar per page after the footer, the
+footer's „Zmień zgodę na cookies” revealed by the module, `?lab=open` showing the bar and `?lab=open,reject`
+withdrawing (cookies gone, page reloaded, no Google request afterwards). JS off could not be run that way
 (`--dump-dom` returns nothing with scripting disabled); the served HTML has the bar `hidden` and no Google URL.
 Steps 4 (the hit), 7, 8 and 9 need a person.

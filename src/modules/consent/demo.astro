@@ -2,8 +2,8 @@
 // Lab demo for /lab/consent/ (dev, or a build with MONSUN_LAB=1). It runs the module with the test id G-TEST000000
 // while site.ga4Id is null, and lists what the browser stored and fetched, so the checks in README.md can be read
 // off the page. The site's policy has the GA4 origins only once ga4Id is set; README.md says how to check the test
-// id under CSP before that. ?lab=accept or ?lab=reject presses that button after load, and ?lab=accept,lead also
-// sends monsun:lead (for headless runs).
+// id under CSP before that. For headless runs, ?lab= takes steps run in order after load: open (clicks the footer's
+// [data-consent-open], else the demo's), accept, reject, lead (sends monsun:lead 1.5 s later); e.g. ?lab=open,reject.
 import Base from '../../layouts/Base.astro';
 import { site } from '../../config/site.ts';
 import Consent from './index.astro';
@@ -93,9 +93,11 @@ const TEST_ID = 'G-TEST000000';
     // Drop ?lab= so the reload after a withdrawal does not press the button again.
     if (location.search) history.replaceState(null, '', location.pathname);
     window.addEventListener('load', () => {
-      const choice = steps.find((step) => step === 'accept' || step === 'reject');
-      if (choice) document.querySelector<HTMLButtonElement>(`[data-consent-choice="${choice}"]`)?.click();
-      if (steps.includes('lead')) setTimeout(lead, 1500);
+      for (const step of steps) {
+        if (step === 'open') (document.querySelector<HTMLElement>('footer [data-consent-open]') ?? document.querySelector<HTMLElement>('[data-consent-open]'))?.click();
+        if (step === 'accept' || step === 'reject') document.querySelector<HTMLButtonElement>(`[data-consent-choice="${step}"]`)?.click();
+        if (step === 'lead') setTimeout(lead, 1500);
+      }
     });
   </script>
 </Base>
