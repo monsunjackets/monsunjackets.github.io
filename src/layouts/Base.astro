@@ -18,10 +18,14 @@ export interface Props {
   description: string;
   /** Link-preview image (1200×630), path from the site root. */
   image?: string;
+  /** Alt text of the link-preview image; defaults to the brand line that suits og-default.png. */
+  imageAlt?: string;
   /** JSON-LD objects for this page, serialised with the A2 helpers once they land. */
   jsonLd?: object[];
+  /** False on a page with no URL of its own (404.html, served at every missing path): no canonical, no og:url. */
+  canonical?: boolean;
 }
-const { title, description, image = '/og-default.png', jsonLd = [] } = Astro.props;
+const { title, description, image = '/og-default.png', imageAlt = 'MONSUN: Odzież na lata, nie na sezony.', jsonLd = [], canonical: hasCanonical = true } = Astro.props;
 const ld = (data: object) => JSON.stringify(data).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const fullTitle = Astro.url.pathname === '/' ? title : `${title} | MONSUN`;
@@ -37,18 +41,18 @@ const imageUrl = new URL(image, Astro.site);
   <meta name="color-scheme" content="light dark">
   <title>{fullTitle}</title>
   <meta name="description" content={description}>
-  <link rel="canonical" href={canonical}>
+  {hasCanonical && <link rel="canonical" href={canonical}>}
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="MONSUN">
   <meta property="og:locale" content="pl_PL">
   <meta property="og:title" content={fullTitle}>
   <meta property="og:description" content={description}>
-  <meta property="og:url" content={canonical}>
+  {hasCanonical && <meta property="og:url" content={canonical}>}
   <meta property="og:image" content={imageUrl}>
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="MONSUN: Odzież na lata, nie na sezony.">
+  <meta property="og:image:alt" content={imageAlt}>
   <meta name="twitter:card" content="summary_large_image">
   {site.gscVerification && <meta name="google-site-verification" content={site.gscVerification}>}
   {jsonLd.map((data) => <script type="application/ld+json" set:html={ld(data)} />)}
