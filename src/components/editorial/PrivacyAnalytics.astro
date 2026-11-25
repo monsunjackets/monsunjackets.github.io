@@ -1,0 +1,82 @@
+---
+// Statistics, cookies and browser storage on /prywatnosc/ (ADR 0001 §6). The text follows site.ga4Id, the switch
+// that also turns on the consent bar, the footer's „Zmień zgodę na cookies” and the Google origins in the CSP.
+// While it is null the site loads no analytics and writes no cookies, so the page says so (as the footer does)
+// and, in the future tense, what switching statistics on will change.
+import { site } from '../../config/site.ts';
+import { polishDate } from '../../lib/dates.ts';
+import Prose from './Prose.astro';
+
+const analytics = site.ga4Id !== null;
+/** Statistics are kept no longer than the launch list. */
+const deleteBy = polishDate(site.launchList.deleteBy);
+
+/**
+ * What the site keeps in localStorage without any consent. Only the consent module writes there, and it runs only
+ * with GA4. When the theme toggle lands, `monsun-theme` joins this list in both states.
+ */
+const storage = [
+  ...(analytics ? [{ key: 'monsun-consent', text: 'Twój wybór w sprawie cookies i jego data, żeby nie pytać przy każdej wizycie.' }] : []),
+];
+---
+<Prose>
+  {analytics ? (
+    <>
+      <h2 id="statystyki">Statystyki odwiedzin</h2>
+      <p>Za Twoją zgodą korzystamy z Google Analytics 4. Dzięki temu wiemy, ile osób odwiedza stronę i skąd
+        przychodzą, na przykład z plakatu albo z wyszukiwarki. Bez zgody strona nie wczytuje tego narzędzia i nie łączy
+        się z Google.</p>
+      <ul>
+        <li><strong>Jakie dane:</strong> które podstrony otwierasz, skąd przychodzisz, typ urządzenia i przeglądarki,
+          przybliżona lokalizacja. Gdy zapiszesz się na listę startową, Google Analytics odnotuje sam zapis, bez adresu
+          e-mail.</li>
+        <li><strong>Podstawa:</strong> Twoja zgoda (art. 6 ust. 1 lit. a RODO).</li>
+        <li><strong>Odbiorca:</strong> Google Ireland Limited. Dane mogą trafić do Google LLC w USA na podstawie ram
+          ochrony danych UE–USA.</li>
+        <li><strong>Reklamy:</strong> nie używamy tych danych do reklam. Sygnały Google i personalizację reklam
+          wyłączyliśmy.</li>
+        <li><strong>Jak długo:</strong> najpóźniej do {deleteBy} r., razem z listą startową.</li>
+      </ul>
+
+      <h2 id="cookies">Pliki cookie i pamięć przeglądarki</h2>
+      <p>Pliki cookie zapisujemy tylko za Twoją zgodą (art. 399 Prawa komunikacji elektronicznej):</p>
+      <ul>
+        <li><code>_ga</code> i <code>_ga_&lt;identyfikator&gt;</code>: pliki Google Analytics, które odróżniają jednego
+          odwiedzającego od drugiego. Zapisują się dopiero po kliknięciu „Akceptuj”. Google domyślnie ustawia je na
+          2 lata.</li>
+      </ul>
+      <p>Bez zgody strona zapisuje w pamięci Twojej przeglądarki (localStorage) tylko to, co poniżej. Nic z tego nie
+        trafia do nas ani do nikogo innego:</p>
+      <ul>{storage.map((item) => <li><code>{item.key}</code>: {item.text}</li>)}</ul>
+      <p>Zgodę zmienisz albo wycofasz linkiem „Zmień zgodę na cookies” w stopce strony. Po wycofaniu zgody strona usuwa
+        pliki <code>_ga</code> i wczytuje się na nowo.</p>
+    </>
+  ) : (
+    <>
+      <h2 id="statystyki">Statystyki odwiedzin i pliki cookie</h2>
+      <p>Strona nie używa dziś Google Analytics ani innych narzędzi analitycznych i nie zapisuje plików cookie.
+        {storage.length === 0 && ' Nie zapisuje też niczego w pamięci Twojej przeglądarki (localStorage).'}</p>
+      {storage.length > 0 && (
+        <>
+          <p>W pamięci Twojej przeglądarki (localStorage) zapisuje tylko to, co poniżej. Nic z tego nie trafia do nas ani
+            do nikogo innego:</p>
+          <ul>{storage.map((item) => <li><code>{item.key}</code>: {item.text}</li>)}</ul>
+        </>
+      )}
+      <p>Jeśli włączymy statystyki odwiedzin w Google Analytics 4, najpierw zaktualizujemy tę stronę, a zmieni się
+        tyle:</p>
+      <ul>
+        <li><strong>Zgoda:</strong> strona zapyta o nią paskiem na dole ekranu. Bez zgody nie wczyta Google Analytics
+          i nie połączy się z Google.</li>
+        <li><strong>Pliki cookie:</strong> dopiero po kliknięciu „Akceptuj” Google Analytics zapisze pliki
+          <code>_ga</code> i <code>_ga_&lt;identyfikator&gt;</code>, które odróżniają jednego odwiedzającego od
+          drugiego.</li>
+        <li><strong>Jakie dane:</strong> które podstrony otwierasz, skąd przychodzisz, typ urządzenia i przeglądarki,
+          przybliżona lokalizacja. Odbiorcą będzie Google Ireland Limited, a dane mogą trafić do Google LLC w USA na
+          podstawie ram ochrony danych UE–USA. Nie użyjemy ich do reklam, a przechowamy najpóźniej do {deleteBy} r.</li>
+        <li><strong>Twój wybór:</strong> strona zapamięta go w przeglądarce (<code>monsun-consent</code>), a zmienisz go
+          albo wycofasz linkiem „Zmień zgodę na cookies”, który pojawi się wtedy w stopce.</li>
+      </ul>
+    </>
+  )}
+</Prose>

@@ -16,8 +16,6 @@ zamek, więc każda podpinka MONSUN będzie pasować do każdej kurtki w tym sam
 Zimą wepniesz pikowaną podpinkę. Wiosną i jesienią ją wypniesz i zostanie lekka skórzana kurtka. Samą podpinkę
 będzie można nosić jako kamizelkę, pod płaszcz albo w chłodnym biurze.
 
-Zakresy temperatur podajemy orientacyjnie. Sprawdzimy je na prototypie i opiszemy wynik na blogu.
-
 ## Która podpinka do której kurtki
 
 Podpinka będzie w dwóch grubościach: lekka na jesień (199 zł) i zimowa (249 zł). To planowane ceny premierowe.
@@ -25,10 +23,10 @@ Podpinkę wybierzesz w tym samym rozmiarze co kurtkę.
 
 | Model | Podpinka |
 |---|---|
-| [Ramoneska skórzana z podpinką](/kolekcja/ramoneska-skorzana-z-podpinka/) | zimowa w zestawie, będzie pasować też lekka |
+| [Ramoneska skórzana z podpinką](/kolekcja/ramoneska-skorzana-z-podpinka/) | planowany zestaw z zimową, będzie pasować też lekka |
 | [Kurtka skórzana, gotowa na podpinkę](/kolekcja/kurtka-skorzana-na-podpinke/) | do dokupienia, lekka albo zimowa |
 | [Kurtka jeansowa z zamkiem na podpinkę](/kolekcja/kurtka-jeansowa-na-podpinke/) | do dokupienia, lekka albo zimowa |
-| [Płaszcz skórzany z podpinką](/kolekcja/plaszcz-skorzany-z-podpinka/) | zimowa w zestawie |
+| [Płaszcz skórzany z podpinką](/kolekcja/plaszcz-skorzany-z-podpinka/) | planowany zestaw z zimową |
 
 Płaszcz będzie dłuższy od kurtek. Czy będą do niego pasować podpinki z kurtek, sprawdzimy na prototypie.
 

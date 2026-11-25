@@ -22,7 +22,7 @@ While `site.ga4Id` is `null` the module renders **nothing**: no bar, no script t
 | File | Role |
 |---|---|
 | `index.astro` | The import surface: the bar markup (rendered `hidden`), `Props`, the scoped styles and the processed `<script>` |
-| `consent.ts` | Pure helpers (parse and serialise `monsun-consent`, the show-the-bar decision, GA4 cookie names, the tag URL) and `initConsent(bar)`, which wires them to the page |
+| `consent.ts` | Pure helpers (parse and serialise `monsun-consent`, the show-the-bar and withdraw-elsewhere decisions, GA4 cookie names, the tag URL) and `initConsent(bar)`, which wires them to the page |
 | `consent.test.ts` | `node:test` tests of the pure helpers |
 | `demo.astro` | `/lab/consent/`: the module with the test id `G-TEST000000` and a panel showing storage, cookies, the gtag queue, cross-origin fetches and CSP violations |
 
@@ -56,8 +56,10 @@ covering the last of the content. One module per page: the script wires the firs
 | „Akceptuj” | Stores `{v: 1, analytics: true, at}`; queues `consent default` (`analytics_storage: granted`, `ad_storage`, `ad_user_data`, `ad_personalization`: `denied`), `js`, `config` with `allow_google_signals: false` and `allow_ad_personalization_signals: false`; then injects `https://www.googletagmanager.com/gtag/js?id=…` |
 | „Odrzuć” | Stores `{v: 1, analytics: false, at}` and expires any GA4 cookies; the tag is never loaded |
 | Return visit | Accepted: the tag loads, no bar. Rejected: nothing loads, no bar |
+| Choice on the first-visit bar | If the bar had focus, focus moves to the `[data-consent-open]` control (the footer's: the last one before the bar in the tab order) without scrolling, so keyboard users keep their place instead of landing on `<body>` |
 | `[data-consent-open]` clicked | Opens the bar and moves focus to it; after a choice focus returns to the opener. Any `[data-consent-open][hidden]` is revealed by the script |
 | Withdrawal („Odrzuć” after „Akceptuj”) | Stores the refusal, sets `window['ga-disable-<id>']` and `consent update analytics_storage: denied` (so nothing the running tag sends while unloading rewrites a cookie), expires `_ga` and `_ga_<id without "G-">` host-only and on `.<hostname>` (`.monsunjackets.github.io` live), then reloads |
+| Withdrawal elsewhere | A `storage` event for `monsun-consent` (or with no key: storage cleared in another tab), or a `pageshow` with `persisted` (back/forward cache): the stored choice is read again, and if GA4 runs in this page but the choice no longer grants it, the page withdraws as above (`ga-disable`, `consent update`, cookies expired, reload). A choice made elsewhere never loads GA4 in a page that is already open |
 | `monsun:lead` on `document` | With consent in this page view: queues `event generate_lead` with `transport_type: 'beacon'`. Otherwise nothing. The listener never cancels or delays the form submission |
 | Stored value corrupt, of another version, or malformed | Treated as no choice: the bar asks again. Such a value never counts as consent |
 | `localStorage` blocked | No stored choice, so the bar asks on every page; a failed write removes any older value, so an old „Akceptuj” cannot outlive a refusal |

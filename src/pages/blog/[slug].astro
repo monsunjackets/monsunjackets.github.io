@@ -6,7 +6,7 @@ import { render, type CollectionEntry } from 'astro:content';
 import { getImage } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import LaunchList from '../../modules/launch-list/index.astro';
-import Breadcrumbs from '../../components/editorial/Breadcrumbs.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import Byline from '../../components/editorial/Byline.astro';
 import OwnPhoto from '../../components/editorial/OwnPhoto.astro';
 import Prose from '../../components/editorial/Prose.astro';
@@ -69,7 +69,7 @@ const jsonLd = [
       <p class="ai-use"><strong>Jak pomogło AI.</strong> {aiUse}</p>
     </article>
     <div class="after">
-      <LaunchList source={`blog-${post.id}`} />
+      <LaunchList source={`blog/${post.id}`} />
     </div>
   </div>
 </Base>

@@ -3,7 +3,7 @@
 // against the whole build.
 import { attr, describeTag, tokenize, type StartTag } from '../html.ts';
 import { allowsInline, comparePolicy, parsePolicy, type Policy } from './policy.ts';
-import { classifyUrl, cssUrls, SITE_ORIGIN, srcsetUrls } from './urls.ts';
+import { classifyUrl, cssUrls, scriptImports, SITE_ORIGIN, srcsetUrls } from './urls.ts';
 
 /**
  * The rules, as printed in failures. Per page: html-lang (`<html lang="pl">`); csp-meta (exactly one CSP meta,
@@ -15,7 +15,8 @@ import { classifyUrl, cssUrls, SITE_ORIGIN, srcsetUrls } from './urls.ts';
  * protocol-relative URLs count as external; links to other sites are fine); form-action (this site or
  * https://docs.google.com/forms/ only). Whole build (dist.ts): missing-target and trailing-slash (every
  * same-origin URL in pages, stylesheets and the sitemap is served by a file in the build, pages with their "/");
- * sitemap (every <loc> is on this site); lab (no /lab/ without MONSUN_LAB=1); no-pages; symlink.
+ * sitemap (every <loc> is on this site); lab (no /lab/ without MONSUN_LAB=1); unused-script (every _astro/*.js is
+ * loaded by a page, directly or through the imports of another script); no-pages; symlink.
  */
 export type Rule =
   | 'html-lang'
@@ -36,6 +37,7 @@ export type Rule =
   | 'trailing-slash'
   | 'sitemap'
   | 'lab'
+  | 'unused-script'
   | 'no-pages'
   | 'symlink';
 
@@ -187,7 +189,10 @@ export function checkPage(html: string, ctx: PageContext): { problems: Problem[]
         if (attr(tag, 'action') !== undefined) formAction(tag, 'action', attr(tag, 'action')!);
         break;
       case 'script':
-        if (attr(tag, 'src') === undefined) inlineScripts.push(content);
+        if (attr(tag, 'src') === undefined) {
+          inlineScripts.push(content);
+          for (const url of scriptImports(content)) load(tag, 'import', url); // an inline module importing a chunk
+        }
         break;
       case 'style':
         inlineStyles.push(content);

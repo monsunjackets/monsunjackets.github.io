@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { decodeEntities } from '../html.ts';
 import { checkPage, type Reference, type Rule } from './page.ts';
 import type { Policy } from './policy.ts';
-import { classifyUrl, cssUrls, resolvePath, servedPath, SITE_ORIGIN } from './urls.ts';
+import { classifyUrl, cssUrls, resolvePath, scriptImports, servedPath, SITE_ORIGIN } from './urls.ts';
 
 export interface Finding {
   /** Path relative to the dist directory, with "/". */
@@ -46,8 +46,11 @@ export function verifyDist(dist: string, options: VerifyOptions): VerifyResult {
   const pages = [...files].filter((f) => f.endsWith('.html')).sort();
   if (pages.length === 0) add('.', 'no-pages', 'the build has no HTML pages');
 
+  /** Site paths that pages and stylesheets reference, for the unused-script rule. */
+  const referenced = new Set<string>();
   const check = (file: string, references: Reference[]) => {
     for (const { path, from } of references) {
+      referenced.add(path);
       const resolution = resolvePath(path, files);
       if (resolution === 'missing') add(file, 'missing-target', `${from} points to ${path}, which is not in the build`);
       else if (resolution === 'no-trailing-slash') add(file, 'trailing-slash', `${from} points to ${path} without the trailing "/"; Pages answers with a redirect`);
@@ -85,6 +88,32 @@ export function verifyDist(dist: string, options: VerifyOptions): VerifyResult {
       else add('sitemap.xml', 'sitemap', `<loc>${loc}</loc> is not an absolute URL on ${SITE_ORIGIN}`);
     }
     check('sitemap.xml', references);
+  }
+
+  // unused-script: Astro bundles the scripts of every component in a route's module graph, even when the route
+  // generates no page, so code no page uses can still ship (review G3: the /lab/ demos in production bundles).
+  // Every bundled script must be reachable from a page: loaded by it, or imported by a script that is.
+  const reached = new Set<string>();
+  const queue = [...referenced].map((path) => path.replace(/^\/+/, '')).filter((file) => file.endsWith('.js') && files.has(file));
+  while (queue.length > 0) {
+    const file = queue.pop()!;
+    if (reached.has(file)) continue;
+    reached.add(file);
+    const references: Reference[] = [];
+    for (const raw of scriptImports(readFileSync(join(dist, file), 'utf8'))) {
+      const target = classifyUrl(raw, new URL(`/${file}`, SITE_ORIGIN).href);
+      if (target.kind === 'internal') references.push({ path: target.path, from: `import "${raw}"` });
+      else if (target.kind === 'external') add(file, 'external-load', `import "${raw}" loads from another origin`);
+      else if (target.kind === 'invalid') add(file, 'missing-target', `import "${raw}" is not a valid URL`);
+    }
+    check(file, references);
+    for (const { path } of references) {
+      const next = path.replace(/^\/+/, '');
+      if (next.endsWith('.js') && files.has(next)) queue.push(next);
+    }
+  }
+  for (const file of [...files].filter((f) => f.startsWith('_astro/') && f.endsWith('.js')).sort()) {
+    if (!reached.has(file)) add(file, 'unused-script', 'no built page loads this script, directly or through another script; the build ships code nothing uses (a /lab/ demo in a production build?)');
   }
 
   findings.sort((a, b) => (a.file === b.file ? a.rule.localeCompare(b.rule) : a.file.localeCompare(b.file)));

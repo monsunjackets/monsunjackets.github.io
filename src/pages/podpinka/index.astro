@@ -3,7 +3,6 @@
 // This is the poster and flyer QR target, so the launch list (#lista) is on the page and linked from the top.
 import { getEntry } from 'astro:content';
 import EditorialPage from '../../components/editorial/EditorialPage.astro';
-import LinerFit from '../../components/editorial/LinerFit.astro';
 import WaysScale from '../../components/editorial/WaysScale.astro';
 import LaunchList from '../../modules/launch-list/index.astro';
 
@@ -22,7 +21,6 @@ const { ways = [] } = page.data;
       </section>
     )}
   </Fragment>
-  <LinerFit />
   <div slot="after" class="list"><LaunchList source="podpinka" /></div>
 </EditorialPage>
 

@@ -3,6 +3,8 @@
 // the page-transitions hook (one per product per page); with no product image yet it shows an empty slot.
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
+import { productPath } from '../shop/content.ts';
+import { AI_LABEL, formatPln } from '../shop/format.ts';
 
 export interface Props {
   product: CollectionEntry<'products'>;
@@ -10,9 +12,8 @@ export interface Props {
 const { product } = Astro.props;
 const { name, plannedPrice, images } = product.data;
 const image = images[0];
-const price = `${new Intl.NumberFormat('pl-PL', { useGrouping: 'always' }).format(plannedPrice.pln)} zł`;
 ---
-<a class="product-card" href={`/kolekcja/${product.id}/`}>
+<a class="product-card" href={productPath(product)}>
   <span class="thumb" data-vt-product={product.id}>
     {image ? (
       <Image src={image.src} alt="" width={96} height={120} densities={[1, 2]} fit="cover" />
@@ -22,9 +23,9 @@ const price = `${new Intl.NumberFormat('pl-PL', { useGrouping: 'always' }).forma
   </span>
   <span class="text">
     <strong>{name}</strong>
-    <span>Planowana cena premierowa: {price}. {plannedPrice.note}</span>
+    <span>Planowana cena premierowa: {formatPln(plannedPrice.pln)}. {plannedPrice.note}</span>
     <span class="more">Zobacz model i tabelę rozmiarów</span>
-    {image?.ai && <span class="ai">Wizualizacja AI</span>}
+    {image?.ai && <span class="ai">{AI_LABEL}</span>}
   </span>
 </a>
 

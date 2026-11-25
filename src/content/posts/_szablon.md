@@ -4,7 +4,8 @@
 # 1. Copy this file to src/content/posts/<slug>.md. The slug is your keyword without Polish letters, with
 #    hyphens: "jak dbać o kurtkę skórzaną" -> jak-dbac-o-kurtke-skorzana.md.
 # 2. Replace every [placeholder] below and in the text. Write the post in Polish.
-# 3. Put your own photo, with location data removed (npm run images:strip), in src/assets/posts/<slug>/.
+# 3. Don't commit the photo yourself: upload the original JPEG to the team Drive, site-assets/posts/<your first
+#    name>/, as the Drive template says. It is added to src/assets/posts/<slug>/ with its location data removed.
 # 4. Set draft to false and open a pull request. The build names every field that is missing or wrong.
 #
 # Rules, checklist and a filled-in example: docs/handoff/post-template.md (the Drive version of this template).

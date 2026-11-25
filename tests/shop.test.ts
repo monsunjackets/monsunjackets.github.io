@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatCelsius, formatNumber, formatPln } from '../src/components/shop/format.ts';
+import { AI_LABEL, formatCelsius, formatNumber, formatPln, labelledAlt, linerLabel } from '../src/components/shop/format.ts';
 import { cardImage, gallerySlots } from '../src/components/shop/gallery.ts';
 import { linkTarget } from '../src/components/shop/links.ts';
 import { linerFitNote, sizeColumns } from '../src/components/shop/sizes.ts';
@@ -13,6 +13,21 @@ test('prices group thousands and keep „zł” on the same line', () => {
   assert.equal(formatPln(1234567), `1${NBSP}234${NBSP}567${NBSP}zł`);
   assert.throws(() => formatPln(99.5), RangeError);
   assert.throws(() => formatPln(-1), RangeError);
+});
+
+test('every liner label is a plan in the future tense, never a fact about a product that exists', () => {
+  assert.equal(linerLabel('included'), 'Planowany zestaw z podpinką zimową');
+  assert.equal(linerLabel('compatible'), 'Będzie pasować każda podpinka MONSUN w tym samym rozmiarze');
+  assert.equal(linerLabel('liner'), 'Będzie pasować do wszystkich kurtek MONSUN');
+  for (const liner of ['included', 'compatible', 'liner'] as const) {
+    assert.doesNotMatch(linerLabel(liner), /w zestawie|^Do |pasuje/u, liner);
+  }
+});
+
+test('an AI image keeps its label in alt text shown away from the caption', () => {
+  assert.equal(AI_LABEL, 'Wizualizacja AI');
+  assert.equal(labelledAlt({ alt: 'Ramoneska z wpiętą podpinką', ai: true }), 'Ramoneska z wpiętą podpinką (Wizualizacja AI)');
+  assert.equal(labelledAlt({ alt: 'Ramoneska z wpiętą podpinką', ai: false }), 'Ramoneska z wpiętą podpinką');
 });
 
 test('measurements use a decimal comma, temperatures a true minus and an explicit plus', () => {

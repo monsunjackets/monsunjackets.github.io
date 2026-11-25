@@ -1,0 +1,19 @@
+---
+// /lab/<module>/ demos (ADR 0001 §4, contract item 9): one page per src/modules/<name>/demo*.astro.
+// Not in src/pages/: astro.config.ts injects this route only in `astro dev` and in a build with MONSUN_LAB=1 (for CSP
+// checks). A route file under src/pages/ pulls every demo into the production build's module graph even when
+// getStaticPaths returns nothing, and the demos' scripts then ship in dist/_astro/ (review G3).
+// verify-dist still fails if dist/lab exists without MONSUN_LAB=1.
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
+
+export function getStaticPaths() {
+  const demos = import.meta.glob<{ default: AstroComponentFactory }>('../modules/*/demo*.astro', { eager: true });
+  return Object.entries(demos).map(([path, mod]) => {
+    const [, name, variant] = path.match(/modules\/([^/]+)\/demo(?:-([^/.]+))?\.astro$/) ?? [];
+    return { params: { demo: variant ? `${name}/${variant}` : name }, props: { Demo: mod.default } };
+  });
+}
+
+const { Demo } = Astro.props;
+---
+<Demo />
