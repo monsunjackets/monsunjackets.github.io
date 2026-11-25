@@ -1,0 +1,15 @@
+---
+// Lab demo for /lab/launch-list/soon/: no Form configured, the section without inputs.
+import Base from '../../layouts/Base.astro';
+import LaunchListView from './LaunchListView.astro';
+---
+<Base title="Lab: launch-list, wkrótce" description="Podgląd modułu launch-list bez skonfigurowanego formularza.">
+  <div class="wrap lab">
+    <h1>launch-list: wkrótce</h1>
+    <LaunchListView source="lab" form={null} contactEmail={null} deleteBy="2027-02-28" />
+  </div>
+</Base>
+
+<style>
+  .lab { display: grid; gap: 2rem; padding-block: 2rem; }
+</style>
