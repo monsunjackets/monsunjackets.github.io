@@ -1,0 +1,65 @@
+---
+// Garment measurements of every model, for /rozmiary/ (research §5: per size, with the liner in and out). The same
+// numbers as the product pages, side by side, so a reader can see that every liner follows the jacket's size.
+// No liner-toggle hooks here: those belong to the product page.
+import { productsInOrder } from './content.ts';
+
+const products = (await productsInOrder()).filter((product) => product.data.sizes.length > 0);
+const cm = (value: number | undefined) => (value === undefined ? '–' : `${value} cm`);
+---
+{products.length > 0 && (
+  <section class="sizes" aria-labelledby="wymiary">
+    <h2 id="wymiary">Wymiary według modelu</h2>
+    {products.map((product) => {
+      const { name, sizes, sizesAreExample } = product.data;
+      const withLiner = sizes.some((row) => row.chestWithLiner !== undefined);
+      const sleeve = sizes.some((row) => row.sleeve !== undefined);
+      return (
+        <section class="model" aria-labelledby={`wymiary-${product.id}`}>
+          <h3 id={`wymiary-${product.id}`}>{name}</h3>
+          {sizesAreExample && (
+            <p class="note"><span class="badge">Wymiary przykładowe</span> Uzupełnimy je po uszyciu prototypu.</p>
+          )}
+          <div class="table-wrap" role="region" aria-labelledby={`wymiary-${product.id}`} tabindex="0">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Rozmiar</th>
+                  <th scope="col">Szerokość pod pachami</th>
+                  {withLiner && <th scope="col">Z wpiętą podpinką</th>}
+                  <th scope="col">Długość pleców</th>
+                  {sleeve && <th scope="col">Rękaw</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {sizes.map((row) => (
+                  <tr>
+                    <th scope="row">{row.size}</th>
+                    <td>{cm(row.chest)}</td>
+                    {withLiner && <td>{cm(row.chestWithLiner)}</td>}
+                    <td>{cm(row.back)}</td>
+                    {sleeve && <td>{cm(row.sleeve)}</td>}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      );
+    })}
+  </section>
+)}
+
+<style>
+  .sizes { display: grid; gap: 2rem; }
+  h2 { font-size: var(--step-3); font-stretch: 85%; font-weight: 700; line-height: 1.08; }
+  .model { display: grid; gap: .7rem; min-width: 0; }
+  h3 { font-size: var(--step-1); font-stretch: 90%; font-weight: 650; }
+  .badge { display: inline-block; margin-right: .4rem; padding: .1rem .45rem; border-radius: var(--r-tag); background: var(--sunk);
+    color: var(--ink-soft); box-shadow: inset 0 0 0 1px var(--line); }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .95rem; }
+  th, td { text-align: left; padding: .6rem .8rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  thead th { font-weight: 600; color: var(--ink-soft); font-size: var(--step--1); }
+  tbody th { font-weight: 600; }
+</style>
