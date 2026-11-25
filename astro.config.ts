@@ -1,7 +1,9 @@
 import { defineConfig } from 'astro/config';
+import { csp } from './src/lib/csp.ts';
 
 // ADR 0001 §1 (static, no integrations) and §9 (CSP). Astro adds the script and style hashes per page
-// and emits the policy as a meta tag; Pages cannot send headers.
+// and emits the policy as a meta tag; Pages cannot send headers. The policy itself is in src/lib/csp.ts,
+// which verify-dist checks every built page against.
 export default defineConfig({
   site: 'https://monsunjackets.github.io',
   output: 'static',
@@ -10,21 +12,5 @@ export default defineConfig({
   devToolbar: { enabled: false },
   // Shiki writes inline styles, which the CSP blocks; posts need no code highlighting.
   markdown: { syntaxHighlight: false },
-  security: {
-    csp: {
-      algorithm: 'SHA-256',
-      // Google origins for GA4 are added by the consent chunk (B2), the code that needs them.
-      directives: [
-        "default-src 'self'",
-        "img-src 'self'",
-        "connect-src 'self'",
-        "font-src 'self'",
-        "form-action 'self' https://docs.google.com",
-        "base-uri 'none'",
-        "object-src 'none'",
-      ],
-      scriptDirective: { resources: ["'self'"] },
-      styleDirective: { resources: ["'self'"] },
-    },
-  },
+  security: { csp },
 });
