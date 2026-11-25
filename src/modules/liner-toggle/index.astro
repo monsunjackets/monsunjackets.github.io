@@ -1,0 +1,153 @@
+---
+// liner-toggle: „Z podpinką / Bez podpinki” on a jacket's product page. Contract: ADR 0001 §4; placement and the
+// markup it expects: README.md next to this file. No script: two radios and :has() do the whole job, so the page
+// keeps working with JS off, and without :has() the control is hidden and the page shows both states.
+import { showsLinerToggle, type LinerImage, type LinerKind, type LinerState } from './liner-toggle.ts';
+
+export interface Props {
+  /** The product's `liner` field. For `liner` (the liner itself) the module renders nothing. */
+  liner: LinerKind;
+  /** The product's images; only `state` is read. Without at least one `in` and one `out` photo it renders nothing. */
+  images: readonly LinerImage[];
+  /** Prefix for the radio ids and the group name. Must be unique on the page. */
+  id?: string;
+  /** State chosen before any interaction. */
+  initial?: LinerState;
+  /** Visible label of the radio group. */
+  legend?: string;
+  inLabel?: string;
+  outLabel?: string;
+  /** Read by screen readers with the group: what the choice changes on the page. */
+  hint?: string;
+  class?: string;
+}
+
+const {
+  liner,
+  images,
+  id = 'liner',
+  initial = 'in',
+  legend = 'Pokaż kurtkę',
+  inLabel = 'Z podpinką',
+  outLabel = 'Bez podpinki',
+  hint = 'Wybór zmienia zdjęcia w galerii i wyróżnia pasującą kolumnę w tabeli rozmiarów.',
+  class: className,
+} = Astro.props;
+---
+
+{
+  showsLinerToggle(liner, images) && (
+    <fieldset class:list={['lt', className]} aria-describedby={`${id}-hint`}>
+      <legend class="lt-legend">{legend}</legend>
+      <div class="lt-options">
+        <input class="lt-radio lt-radio--in" type="radio" name={id} id={`${id}-in`} value="in" checked={initial === 'in'} />
+        <label class="lt-option" for={`${id}-in`}>{inLabel}</label>
+        <input class="lt-radio lt-radio--out" type="radio" name={id} id={`${id}-out`} value="out" checked={initial === 'out'} />
+        <label class="lt-option" for={`${id}-out`}>{outLabel}</label>
+      </div>
+      <p class="visually-hidden" id={`${id}-hint`}>{hint}</p>
+    </fieldset>
+  )
+}
+
+<style>
+  /* The switch itself. Hidden unless :has() works, because only :has() lets it change anything. */
+  .lt { display: none; margin: 0; padding: 0; border: 0; min-width: 0; }
+  @supports selector(:has(*)) {
+    .lt { display: grid; justify-items: start; }
+  }
+  .lt-legend { margin-bottom: .45rem; padding: 0; font-size: var(--step--1); color: var(--ink-soft); }
+  .lt-options {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem;
+    padding: .25rem;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .lt-radio { position: absolute; margin: 0; opacity: 0; pointer-events: none; }
+  .lt-option {
+    cursor: pointer;
+    padding: .45rem 1.1rem .55rem;
+    border-radius: var(--r-pill);
+    color: var(--ink-soft);
+    font-weight: 600;
+    font-stretch: 90%;
+    line-height: 1.2;
+  }
+  .lt-radio:not(:checked) + .lt-option:hover { color: var(--ink); }
+  .lt-radio:checked + .lt-option { background: var(--ink); color: var(--canvas); }
+  .lt-radio:focus-visible + .lt-option { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+  /* Gallery, flat markup: photos of the other state leave the layout. Each pair has one aspect ratio
+     (docs/design/asset-spec.md), so the chosen photo takes the same place. */
+  :global([data-liner-scope]:has(.lt-radio--in:checked) :not(:has(> [data-liner-view="in"]:first-child + [data-liner-view="out"]:last-child)) > [data-liner-view="out"]),
+  :global([data-liner-scope]:has(.lt-radio--out:checked) :not(:has(> [data-liner-view="in"]:first-child + [data-liner-view="out"]:last-child)) > [data-liner-view="in"]) {
+    display: none;
+  }
+
+  /* Gallery, pair slots: an element whose only two children are the in photo and then the out photo of one view.
+     Both share one grid cell, so the chosen photo can cross-fade over the other in place. */
+  :global([data-liner-scope]:has(.lt-radio:checked) :has(> [data-liner-view="in"]:first-child + [data-liner-view="out"]:last-child)) {
+    display: grid;
+  }
+  :global([data-liner-scope]:has(.lt-radio:checked) :has(> [data-liner-view="in"]:first-child + [data-liner-view="out"]:last-child) > [data-liner-view]) {
+    grid-area: 1 / 1;
+  }
+  :global([data-liner-scope]:has(.lt-radio--in:checked) :has(> [data-liner-view="in"]:first-child + [data-liner-view="out"]:last-child) > [data-liner-view="in"]),
+  :global([data-liner-scope]:has(.lt-radio--out:checked) :has(> [data-liner-view="in"]:first-child + [data-liner-view="out"]:last-child) > [data-liner-view="out"]) {
+    z-index: 1;
+  }
+  :global([data-liner-scope]:has(.lt-radio--in:checked) :has(> [data-liner-view="in"]:first-child + [data-liner-view="out"]:last-child) > [data-liner-view="out"]),
+  :global([data-liner-scope]:has(.lt-radio--out:checked) :has(> [data-liner-view="in"]:first-child + [data-liner-view="out"]:last-child) > [data-liner-view="in"]) {
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  /* Size table: the column for the chosen state gets a frame (a shape, not only a colour) and a lighter ground;
+     the other chest column steps back. Nothing here changes a width, so the table does not move. */
+  :global([data-liner-scope]:has(.lt-radio--in:checked) [data-liner-col="in"]),
+  :global([data-liner-scope]:has(.lt-radio--out:checked) [data-liner-col="out"]) {
+    background-color: var(--raised);
+    box-shadow: inset 2px 0 var(--petrol), inset -2px 0 var(--petrol);
+    color: var(--ink);
+  }
+  :global([data-liner-scope]:has(.lt-radio--in:checked) thead [data-liner-col="in"]),
+  :global([data-liner-scope]:has(.lt-radio--out:checked) thead [data-liner-col="out"]) {
+    box-shadow: inset 2px 0 var(--petrol), inset -2px 0 var(--petrol), inset 0 2px var(--petrol);
+  }
+  :global([data-liner-scope]:has(.lt-radio--in:checked) tbody > tr:last-child > [data-liner-col="in"]),
+  :global([data-liner-scope]:has(.lt-radio--out:checked) tbody > tr:last-child > [data-liner-col="out"]) {
+    box-shadow: inset 2px 0 var(--petrol), inset -2px 0 var(--petrol), inset 0 -2px var(--petrol);
+  }
+  :global([data-liner-scope]:has(.lt-radio--in:checked) [data-liner-col="out"]),
+  :global([data-liner-scope]:has(.lt-radio--out:checked) [data-liner-col="in"]) {
+    color: var(--ink-soft);
+  }
+
+  /* System colours, not brand colours: forced-colours mode drops backgrounds and shadows, which carry both states. */
+  @media (forced-colors: active) {
+    .lt-option { border: 1px solid CanvasText; }
+    .lt-radio:checked + .lt-option { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+    :global([data-liner-scope]:has(.lt-radio--in:checked) [data-liner-col="in"]),
+    :global([data-liner-scope]:has(.lt-radio--out:checked) [data-liner-col="out"]) {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      color: HighlightText;
+    }
+  }
+
+  /* Motion: only the cross-fade in pair slots. The chosen photo fades in on top; the other stays opaque underneath
+     (no dip to the background) and is hidden once covered. Flat markup and reduced motion swap at once. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global([data-liner-scope]:has(.lt-radio--in:checked) :has(> [data-liner-view="in"]:first-child + [data-liner-view="out"]:last-child) > [data-liner-view="in"]),
+    :global([data-liner-scope]:has(.lt-radio--out:checked) :has(> [data-liner-view="in"]:first-child + [data-liner-view="out"]:last-child) > [data-liner-view="out"]) {
+      transition: opacity .4s var(--ease);
+    }
+    :global([data-liner-scope]:has(.lt-radio--in:checked) :has(> [data-liner-view="in"]:first-child + [data-liner-view="out"]:last-child) > [data-liner-view="out"]),
+    :global([data-liner-scope]:has(.lt-radio--out:checked) :has(> [data-liner-view="in"]:first-child + [data-liner-view="out"]:last-child) > [data-liner-view="in"]) {
+      transition: opacity 0s .4s, visibility 0s .4s;
+    }
+  }
+</style>
