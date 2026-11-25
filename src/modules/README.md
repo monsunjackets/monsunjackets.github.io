@@ -16,7 +16,9 @@ Self-contained interactive pieces. Each lives in `src/modules/<name>/`, and the 
 - [ ] **Motion:** only `transform`, `opacity`, `filter`, `clip-path` (documented exceptions below), gated by
       `prefers-reduced-motion: no-preference`; newer features behind `@supports`.
 - [ ] **Budgets:** at most ~5 kB JS gzipped, no layout shift, no main-thread task over 50 ms.
-- [ ] **Demo:** `demo.astro` (and `demo-<x>.astro`) render at `/lab/<name>/` in dev, or with `MONSUN_LAB=1`.
+- [ ] **Demo:** `demo.astro` (and `demo-<x>.astro`) render at `/lab/<name>/` in dev, or with `MONSUN_LAB=1`. The route
+      (`src/lab/demos.astro`) is injected by `astro.config.ts` only then, so production bundles hold no demo code;
+      verify-dist's `unused-script` rule fails on a script no built page loads.
 
 ## Hooks (frozen)
 

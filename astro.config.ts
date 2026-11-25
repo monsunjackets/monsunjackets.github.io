@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import type { AstroIntegration } from 'astro';
 import { defineConfig } from 'astro/config';
 import { csp } from './src/lib/csp.ts';
 
@@ -7,6 +8,21 @@ import { csp } from './src/lib/csp.ts';
 // SHA-256 is computed here from the same file the layout inlines.
 const bootstrap = readFileSync(new URL('./src/scripts/theme-bootstrap.js', import.meta.url), 'utf8');
 const bootstrapHash = `sha256-${createHash('sha256').update(bootstrap).digest('base64')}` as const;
+
+// The /lab/<module>/ demos (ADR 0001 §4) exist only in `astro dev` and in a build with MONSUN_LAB=1. The route is
+// injected here, not kept in src/pages/: a page there would put every demo, scripts included, into the production
+// bundle even with no /lab/ page generated (review G3). Local code only, so ADR §1's "no integrations" (no
+// third-party packages) still holds.
+const lab: AstroIntegration = {
+  name: 'monsun-lab',
+  hooks: {
+    'astro:config:setup': ({ command, injectRoute }) => {
+      if (command === 'dev' || process.env.MONSUN_LAB === '1') {
+        injectRoute({ pattern: '/lab/[...demo]', entrypoint: './src/lab/demos.astro' });
+      }
+    },
+  },
+};
 
 // ADR 0001 §1 (static, no integrations) and §9 (CSP). Astro adds the script and style hashes per page
 // and emits the policy as a meta tag; Pages cannot send headers. The policy itself is in src/lib/csp.ts,
@@ -17,6 +33,7 @@ export default defineConfig({
   trailingSlash: 'always',
   build: { format: 'directory' },
   devToolbar: { enabled: false },
+  integrations: [lab],
   // Shiki writes inline styles, which the CSP blocks; posts need no code highlighting.
   markdown: { syntaxHighlight: false },
   security: {

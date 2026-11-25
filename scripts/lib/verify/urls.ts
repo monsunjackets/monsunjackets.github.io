@@ -81,6 +81,19 @@ export function cssUrls(css: string): string[] {
   return urls;
 }
 
+/**
+ * The relative and root-relative modules a built script imports: `import … from "…"`, `export … from "…"`,
+ * `import "…"` and `import("…")`. Bundler output only, so a pattern match is enough; bare specifiers (which a
+ * browser cannot load) and full URLs are left out.
+ */
+export function scriptImports(code: string): string[] {
+  const urls: string[] = [];
+  for (const m of code.matchAll(/(?:\bimport|\bfrom)\s*\(?\s*(["'`])([^"'`\n]*)\1/g)) {
+    if (/^(?:\.{1,2})?\//.test(m[2]!)) urls.push(m[2]!);
+  }
+  return urls;
+}
+
 /** The site path a built file is served at: `a/b/index.html` → `/a/b/`, `404.html` → `/404.html`. */
 export function servedPath(file: string): string {
   if (file === 'index.html') return '/';

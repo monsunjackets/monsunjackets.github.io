@@ -11,7 +11,7 @@ import { tokenize, type StartTag } from '../scripts/lib/html.ts';
 import { verifyDist, type Finding } from '../scripts/lib/verify/dist.ts';
 import type { Rule } from '../scripts/lib/verify/page.ts';
 import { comparePolicy, expectedPolicy, parsePolicy } from '../scripts/lib/verify/policy.ts';
-import { classifyUrl, SITE_ORIGIN, srcsetUrls } from '../scripts/lib/verify/urls.ts';
+import { classifyUrl, scriptImports, SITE_ORIGIN, srcsetUrls } from '../scripts/lib/verify/urls.ts';
 import { cspMeta, makeDist, page, policyText, type Files } from './fixtures/dist.ts';
 
 const dirs: string[] = [];
@@ -68,6 +68,28 @@ const cases: Partial<Record<Rule, Case[]>> = {
     { name: 'an inline script without its hash', bad: site({ 'index.html': page({ head: '<script>alert(1)</script>', hashInline: false }) }), good: withHead('<script>alert(1)</script>'), message: /inline <script> "alert\(1\)"/ },
     { name: 'an inline style without its hash', bad: site({ 'index.html': page({ head: '<style>p{color:red}</style>', hashInline: false }) }), good: withHead('<style>p{color:red}</style>') },
     { name: 'a module script without its hash', bad: site({ 'index.html': page({ body: '<h1>K</h1><script type="module">import "/a.js"</script>', hashInline: false }) }), good: site({ 'index.html': page({ body: '<h1>K</h1><script type="module" src="/a.js"></script>' }), 'a.js': '' }) },
+  ],
+  'unused-script': [
+    {
+      name: 'a bundled script that no page loads (a lab demo in a production build)',
+      bad: site({ '_astro/demo.astro_astro_type_script_index_0_lang.A1.js': 'import{t as e}from"./consent.B2.js";e()', '_astro/consent.B2.js': 'export const t=()=>{}' }),
+      good: site({
+        'index.html': page({ body: '<h1>K</h1><script type="module" src="/_astro/index.astro_astro_type_script_index_0_lang.A1.js"></script>' }),
+        '_astro/index.astro_astro_type_script_index_0_lang.A1.js': 'import{t as e}from"./consent.B2.js";e()',
+        '_astro/consent.B2.js': 'export const t=()=>{}',
+      }),
+      message: /no built page loads this script/,
+    },
+    {
+      name: 'a chunk reached through an inline module and a dynamic import is used',
+      bad: site({ 'index.html': page({ body: '<h1>K</h1><script>import("/_astro/a.C3.js")</script>' }), '_astro/a.C3.js': 'export const a=1', '_astro/b.D4.js': '' }),
+      good: site({ 'index.html': page({ body: '<h1>K</h1><script>import("/_astro/a.C3.js")</script>' }), '_astro/a.C3.js': 'export const a=1;import("./b.D4.js")', '_astro/b.D4.js': '' }),
+    },
+    {
+      name: 'an import of a chunk that is not in the build',
+      bad: site({ 'index.html': page({ body: '<h1>K</h1><script type="module" src="/_astro/a.C3.js"></script>' }), '_astro/a.C3.js': 'import"./gone.E5.js"', '_astro/orphan.F6.js': '' }),
+      good: site({ 'index.html': page({ body: '<h1>K</h1><script type="module" src="/_astro/a.C3.js"></script>' }), '_astro/a.C3.js': 'import"./b.D4.js"', '_astro/b.D4.js': '' }),
+    },
   ],
   h1: [
     { name: 'no h1', bad: site({ 'index.html': page({ body: '<p>Brak</p>' }) }), good: site(), message: /0 <h1>/ },
@@ -171,6 +193,15 @@ describe('rules', () => {
     assert.deepEqual(verify(broken, true).map((f) => f.rule), ['inline-style']);
   });
 
+  test('unused-script: every script of an orphaned chain is named, also in a lab build, and a missing import fails', () => {
+    const orphans = site({ '_astro/demo.A1.js': 'import{t}from"./consent.B2.js";t()', '_astro/consent.B2.js': 'export const t=()=>{}' });
+    const expected = [['_astro/consent.B2.js', 'unused-script'], ['_astro/demo.A1.js', 'unused-script']];
+    assert.deepEqual(verify(orphans).map((f) => [f.file, f.rule]), expected);
+    assert.deepEqual(verify(orphans, true).map((f) => [f.file, f.rule]), expected);
+    const broken = site({ 'index.html': page({ body: '<h1>K</h1><script type="module" src="/_astro/a.C3.js"></script>' }), '_astro/a.C3.js': 'import"./gone.E5.js"' });
+    assert.deepEqual(verify(broken).map((f) => [f.file, f.rule]), [['_astro/a.C3.js', 'missing-target']]);
+  });
+
   test('symlink: a symlink in the build fails and is not followed', () => {
     const dir = makeDist(site());
     dirs.push(dir);
@@ -220,6 +251,12 @@ describe('URLs and policies', () => {
     assert.deepEqual(srcsetUrls('/a.jpg 1x,/b.jpg 2x'), ['/a.jpg', '/b.jpg']);
     assert.deepEqual(srcsetUrls('/a.jpg, /b.jpg 800w'), ['/a.jpg', '/b.jpg']);
     assert.deepEqual(srcsetUrls(' /a.jpg '), ['/a.jpg']);
+  });
+
+  test('module specifiers in bundled scripts', () => {
+    const code = 'import{a as b}from"./x.A1.js";import"/_astro/y.B2.js";export*from\'../z.js\';const c=()=>import("./lazy.C3.js");' +
+      'Array.from("abc");import x from"astro";import("https://cdn.example/m.js");export{q}from"//evil.example/q.js"';
+    assert.deepEqual(scriptImports(code), ['./x.A1.js', '/_astro/y.B2.js', '../z.js', './lazy.C3.js', '//evil.example/q.js']);
   });
 
   test('classification of URLs', () => {
