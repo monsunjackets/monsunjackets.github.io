@@ -30,7 +30,7 @@ Self-contained interactive pieces. Each lives in `src/modules/<name>/`, and the 
 | `html[data-theme]` | `light` or `dark`; absent means "follow the system" | bootstrap, theme-zip | `tokens.css` |
 | `.reading` | opaque `--canvas` surface without quilting | `global.css` | product text, post bodies, launch list |
 | `[data-vt-product="<slug>"]` | one gallery wrapper per product per page | product pages | page-transitions |
-| `[data-liner-scope]`, `[data-liner-view="in"/"out"]`, `[data-liner-col="in"/"out"]` | product page container, gallery figures, size-table cells | product pages | liner-toggle |
+| `[data-liner-scope]`, `[data-liner-view="in"/"out"]`, `[data-liner-col="in"/"out"]` | product page container (also holds the toggle), gallery figures (for the cross-fade: each pair alone in one wrapper, `in` then `out`), size-table header and body cells | product pages | liner-toggle |
 
 ## Registry
 
@@ -46,6 +46,6 @@ Self-contained interactive pieces. Each lives in `src/modules/<name>/`, and the 
 | `hero-temp` | merged (gate H, 24 Nov); placed on the home page |
 | `launch-list` | built (B3): form posting to Google Forms, link fallback, "soon" state; driven by `site.form` |
 | `theme-zip` | to come (Fable, F2) |
-| `liner-toggle` | to come (B6) |
+| `liner-toggle` | built (B6); M6 places it under the product gallery, see `src/modules/liner-toggle/README.md` |
 | `consent` | to come (B2) |
 | `page-transitions` | v2 (Fable, F3) |
